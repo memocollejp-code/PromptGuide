@@ -1,22 +1,29 @@
 <!DOCTYPE html>
-<!-- prompt_drawer v2026-07-01-v3 -->
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Claudeのプロンプト引き出し">
+  <meta name="description" content="Claudeのプロンプト引き出し - よく使うプロンプトを整理・管理・コピー">
   <meta name="theme-color" content="#1e293b">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="プロンプト引き出し">
   <link rel="manifest" href="manifest.json">
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><defs><linearGradient id='grad1' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' style='stop-color:%233b82f6;stop-opacity:1' /><stop offset='100%' style='stop-color:%238b5cf6;stop-opacity:1' /></linearGradient><linearGradient id='grad2' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' style='stop-color:%2310b981;stop-opacity:1' /><stop offset='100%' style='stop-color:%23f59e0b;stop-opacity:1' /></linearGradient><linearGradient id='grad3' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' style='stop-color:%23ef4444;stop-opacity:1' /><stop offset='100%' style='stop-color:%2306b6d4;stop-opacity:1' /></linearGradient></defs><rect width='192' height='192' fill='%230f172a'/><g transform='translate(96,60)'><path d='M-50,-30 L-30,0 L-30,50 Q0,65 30,50 L30,0 L50,-30 Z' fill='%231e293b' opacity='0.8'/><path d='M-45,-25 L-25,-5 L-25,45 Q0,58 25,45 L25,-5 L45,-25 Z' fill='%232d3748' opacity='0.6'/></g><g transform='translate(96,80)'><path d='M-60,-40 L-35,0 L-35,60 L0,75 L35,60 L35,0 L60,-40 Z' fill='url(%23grad1)' opacity='0.9' transform='rotate(-20 0 0)'/><path d='M-60,-40 L-35,0 L-35,60 L0,75 L35,60 L35,0 L60,-40 Z' fill='url(%23grad2)' opacity='0.8' transform='rotate(0 0 0)'/><path d='M-60,-40 L-35,0 L-35,60 L0,75 L35,60 L35,0 L60,-40 Z' fill='url(%23grad3)' opacity='0.7' transform='rotate(20 0 0)'/></g><circle cx='50' cy='50' r='4' fill='%23fbbf24' opacity='0.9'/><circle cx='140' cy='60' r='3' fill='%2360a5fa' opacity='0.8'/><circle cx='80' cy='30' r='2.5' fill='%2334d399' opacity='0.85'/><circle cx='120' cy='100' r='3.5' fill='%23f472b6' opacity='0.8'/></svg>">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'><defs><linearGradient id='drawerGrad' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' style='stop-color:%23ec4899;stop-opacity:1'/><stop offset='50%' style='stop-color:%238b5cf6;stop-opacity:1'/><stop offset='100%' style='stop-color:%233b82f6;stop-opacity:1'/></linearGradient></defs><rect width='200' height='200' fill='%23000'/><g transform='translate(100,100)'><rect x='-60' y='-50' width='120' height='90' rx='8' fill='url(%23drawerGrad)' opacity='0.9'/><rect x='-50' y='-35' width='100' height='20' fill='%23334155'/><circle cx='-35' cy='30' r='4' fill='%23fbbf24'/><circle cx='-10' cy='25' r='3' fill='%2334d399'/><circle cx='20' cy='28' r='3.5' fill='%2360a5fa'/><circle cx='45' cy='26' r='3' fill='%23f472b6'/></g></svg>">
   <title>プロンプトの引き出し</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     html, body { width: 100%; height: 100%; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    body { background-color: #f1f5f9; color: #1e293b; overflow: hidden; transition: background-color 0.2s, color 0.2s; }
-    body.dark-mode { background-color: #0f172a; color: #f1f5f9; }
+    body {
+      background-color: #f1f5f9;
+      color: #1e293b;
+      overflow: hidden;
+      transition: background-color 0.2s, color 0.2s;
+    }
+    body.dark-mode {
+      background-color: #0f172a;
+      color: #f1f5f9;
+    }
 
     .app { display: flex; flex-direction: column; height: 100vh; }
     .header { flex-shrink: 0; background: white; border-bottom: 1px solid #e2e8f0; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; position: sticky; top: 0; z-index: 30; }
@@ -31,66 +38,93 @@
     body.dark-mode .header-subtitle { color: #64748b; }
 
     .header-controls { display: flex; gap: 8px; flex-shrink: 0; }
-    .btn-icon { width: 44px; height: 44px; border: none; background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 20px; border-radius: 8px; }
-    .btn-icon:active { background: #e2e8f0; }
-    body.dark-mode .btn-icon:active { background: #334155; }
+    .btn-icon { width: 40px; height: 40px; border: none; background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 20px; border-radius: 8px; transition: background 0.2s; }
+    .btn-icon:hover { background: #e2e8f0; }
+    body.dark-mode .btn-icon:hover { background: #334155; }
 
-    .btn-add { background: #1e293b; color: white; font-weight: 700; font-size: 13px; padding: 0 14px; border-radius: 8px; height: 44px; display: flex; align-items: center; gap: 6px; border: none; cursor: pointer; }
+    .btn-add { background: #1e293b; color: white; font-weight: 700; font-size: 13px; padding: 0 12px; border-radius: 8px; height: 40px; display: flex; align-items: center; gap: 6px; border: none; cursor: pointer; transition: background 0.2s; }
+    .btn-add:hover { background: #0f172a; }
     body.dark-mode .btn-add { background: #334155; }
+    body.dark-mode .btn-add:hover { background: #475569; }
 
     .search-section { flex-shrink: 0; background: white; border-bottom: 1px solid #e2e8f0; padding: 12px 16px; }
     body.dark-mode .search-section { background: #1e293b; border-bottom-color: #334155; }
 
-    .search-input { width: 100%; padding: 10px 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px; background: #f8fafc; margin-bottom: 12px; }
+    .search-box { position: relative; margin-bottom: 12px; }
+    .search-input { width: 100%; padding: 8px 32px 8px 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px; background: #f8fafc; }
     body.dark-mode .search-input { background: #1e293b; border-color: #334155; color: #f1f5f9; }
+    .search-input::placeholder { color: #94a3b8; }
+    .search-icon { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); font-size: 16px; pointer-events: none; }
+    .search-clear { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #94a3b8; cursor: pointer; padding: 4px; font-size: 16px; }
 
-    .filters { display: flex; gap: 8px; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .filters { display: flex; gap: 8px; overflow-x: auto; padding-right: 4px; -webkit-overflow-scrolling: touch; }
     .filters::-webkit-scrollbar { display: none; }
-    .filter-chip { flex-shrink: 0; padding: 8px 14px; border: 1px solid #e2e8f0; border-radius: 16px; background: white; cursor: pointer; font-size: 12px; font-weight: 600; white-space: nowrap; }
+    .filter-chip { flex-shrink: 0; padding: 6px 12px; border: 1px solid #e2e8f0; border-radius: 16px; background: white; cursor: pointer; font-size: 12px; font-weight: 600; white-space: nowrap; transition: all 0.2s; display: flex; align-items: center; gap: 6px; }
+    .filter-chip:hover { background: #f8fafc; }
     .filter-chip.active { background: #1e293b; color: white; border-color: #1e293b; }
     body.dark-mode .filter-chip { background: #1e293b; border-color: #334155; color: #f1f5f9; }
+    body.dark-mode .filter-chip.active { background: #475569; }
+
+    .filter-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+    .filter-count { font-size: 10px; opacity: 0.7; font-family: monospace; }
 
     .main { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
     .content { max-width: 600px; margin: 0 auto; padding: 16px; }
 
-    .prompt-card { background: white; border: 1px solid #e2e8f0; border-radius: 12px; margin-bottom: 12px; overflow: hidden; }
+    .prompt-card { background: white; border: 1px solid #e2e8f0; border-radius: 12px; margin-bottom: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.05); transition: box-shadow 0.2s; }
     body.dark-mode .prompt-card { background: #1e293b; border-color: #334155; }
+    .prompt-card:hover { box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
 
     .card-header { display: flex; align-items: stretch; cursor: pointer; user-select: none; }
     .card-bar { width: 4px; flex-shrink: 0; }
-    .card-header-content { flex: 1; padding: 14px; display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
-    .card-title { font-size: 15px; font-weight: 700; line-height: 1.3; margin-bottom: 4px; }
-    body.dark-mode .card-title { color: #f1f5f9; }
-    .card-summary { font-size: 12px; color: #64748b; }
+    .card-header-content { flex: 1; padding: 12px; display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+    .card-info { flex: 1; min-width: 0; }
+    .card-code { font-size: 10px; font-weight: 900; letter-spacing: 1px; font-family: monospace; line-height: 1; margin-bottom: 4px; }
+    .card-title { font-size: 14px; font-weight: 700; line-height: 1.3; margin-bottom: 4px; }
+    .card-summary { font-size: 12px; color: #64748b; line-height: 1.3; }
     body.dark-mode .card-summary { color: #94a3b8; }
+
     .card-toggle { width: 20px; height: 20px; flex-shrink: 0; margin-top: 2px; transition: transform 0.3s; }
     .card-toggle.open { transform: rotate(180deg); }
 
-    .card-body { max-height: 0; overflow: hidden; transition: max-height 0.3s; opacity: 0; }
-    .card-body.open { max-height: 900px; opacity: 1; }
+    .card-body { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out, opacity 0.3s ease-out; opacity: 0; }
+    .card-body.open { max-height: 800px; opacity: 1; }
 
-    .card-body-content { padding: 14px; border-top: 1px solid #e2e8f0; }
+    .card-body-content { padding: 12px; border-top: 1px solid #e2e8f0; }
     body.dark-mode .card-body-content { border-top-color: #334155; }
 
-    .prompt-text { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; font-size: 12px; font-family: monospace; line-height: 1.6; white-space: pre-wrap; word-break: break-word; max-height: 300px; overflow-y: auto; margin-bottom: 12px; }
+    .prompt-text { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; font-size: 12px; font-family: monospace; line-height: 1.5; white-space: pre-wrap; word-break: break-word; max-height: 300px; overflow-y: auto; margin-bottom: 12px; }
     body.dark-mode .prompt-text { background: #0f172a; border-color: #334155; color: #e2e8f0; }
 
     .card-actions { display: flex; gap: 8px; }
-    .btn-copy, .btn-edit { flex: 1; padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 700; }
+    .btn-copy, .btn-edit { flex: 1; padding: 10px; border: none; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 700; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; }
     .btn-copy { background: #1e293b; color: white; }
+    .btn-copy:hover { background: #0f172a; }
     .btn-copy.copied { background: #10b981; }
+    body.dark-mode .btn-copy { background: #334155; }
+
     .btn-edit { background: white; border: 1px solid #e2e8f0; color: #475569; }
+    .btn-edit:hover { background: #f8fafc; }
     body.dark-mode .btn-edit { background: #0f172a; border-color: #334155; color: #cbd5e1; }
 
-    .sheet { position: fixed; inset: 0; background: rgba(0,0,0,0.3); z-index: 40; display: none; }
-    .sheet.open { display: flex; }
-    .sheet-content { position: absolute; inset: 0; background: white; display: flex; flex-direction: column; z-index: 41; }
-    body.dark-mode .sheet-content { background: #0f172a; }
+    .empty-state { text-align: center; padding: 40px 20px; }
+    .empty-icon { font-size: 48px; margin-bottom: 12px; opacity: 0.5; }
+    .empty-title { font-size: 16px; font-weight: 700; margin-bottom: 8px; }
+    .empty-text { font-size: 13px; color: #64748b; margin-bottom: 20px; }
+    body.dark-mode .empty-text { color: #94a3b8; }
+    .btn-empty { background: #1e293b; color: white; padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer; font-weight: 700; }
 
-    .sheet-header { flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border-bottom: 1px solid #e2e8f0; background: white; }
+    .sheet { position: fixed; inset: 0; background: rgba(0,0,0,0.3); z-index: 40; display: none; animation: fadeIn 0.2s ease-out; }
+    .sheet.open { display: flex; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    .sheet-content { position: absolute; inset: 0; background: white; display: flex; flex-direction: column; z-index: 41; animation: slideUp 0.25s ease-out; }
+    body.dark-mode .sheet-content { background: #0f172a; }
+    @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+    .sheet-header { flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid #e2e8f0; background: white; }
     body.dark-mode .sheet-header { background: #1e293b; border-bottom-color: #334155; }
 
-    .btn-back { background: none; border: none; cursor: pointer; padding: 10px 12px; font-size: 20px; color: #475569; font-weight: 700; min-width: 44px; min-height: 44px; }
+    .btn-back { background: none; border: none; cursor: pointer; padding: 8px; font-size: 16px; color: #475569; font-weight: 600; display: flex; align-items: center; gap: 6px; }
     body.dark-mode .btn-back { color: #cbd5e1; }
     .sheet-title { font-size: 14px; font-weight: 700; text-align: center; flex: 1; }
 
@@ -99,70 +133,88 @@
     .form-label { display: block; font-size: 12px; font-weight: 700; color: #475569; margin-bottom: 8px; }
     body.dark-mode .form-label { color: #cbd5e1; }
 
-    .form-input, .form-textarea { width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 15px; }
+    .category-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+    .category-chip { padding: 8px 12px; border: 1px solid #e2e8f0; border-radius: 16px; background: white; cursor: pointer; font-size: 12px; font-weight: 600; transition: all 0.2s; }
+    .category-chip.active { color: white; border-color: transparent; }
+    body.dark-mode .category-chip { background: #1e293b; border-color: #334155; color: #f1f5f9; }
+
+    .form-input, .form-textarea { width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px; font-family: monospace; }
     body.dark-mode .form-input, body.dark-mode .form-textarea { background: #1e293b; border-color: #334155; color: #f1f5f9; }
-    .form-textarea { resize: vertical; min-height: 140px; font-family: monospace; }
+    .form-textarea { resize: vertical; min-height: 120px; }
 
-    .btn-save, .btn-delete { width: 100%; padding: 14px; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; color: white; font-size: 15px; }
-    .btn-save { background: #1e293b; }
-    .btn-delete { background: #ef4444; margin-top: 12px; }
+    .btn-save { width: 100%; padding: 12px; background: #1e293b; color: white; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; }
+    .btn-save:hover { background: #0f172a; }
+    body.dark-mode .btn-save { background: #334155; }
 
-    .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #1e293b; color: white; padding: 12px 18px; border-radius: 20px; font-size: 13px; font-weight: 700; z-index: 50; display: none; }
-    .toast.show { display: flex; }
+    .btn-delete { width: 100%; padding: 12px; background: #ef4444; color: white; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; margin-top: 8px; }
+    .btn-delete:hover { background: #dc2626; }
+
+    .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #1e293b; color: white; padding: 12px 20px; border-radius: 8px; z-index: 50; display: none; align-items: center; gap: 8px; font-weight: 600; }
+    body.dark-mode .toast { background: #334155; }
+
+    @media (max-width: 600px) {
+      .header { padding: 10px 12px; }
+      .header-title { font-size: 13px; }
+    }
   </style>
 </head>
 <body>
   <div class="app">
     <header class="header">
       <div class="header-left">
-        <div class="header-icon">✨</div>
+        <div class="header-icon">📦</div>
         <div class="header-text">
-          <div class="header-title">プロンプトの引き出し</div>
-          <div class="header-subtitle" id="promptCount">読み込み中...</div>
+          <div class="header-title">プロンプト引き出し</div>
+          <div class="header-subtitle">v1.0</div>
         </div>
       </div>
       <div class="header-controls">
-        <button class="btn-icon" onclick="openSettings()">⚙️</button>
-        <button class="btn-add" onclick="openEdit()">➕ 追加</button>
+        <button class="btn-icon" id="darkModeToggle">🌙</button>
+        <button class="btn-icon" id="settingsBtn">⚙️</button>
+        <button class="btn-add" id="addBtn">+ 新規</button>
       </div>
     </header>
 
     <div class="search-section">
-      <input type="text" class="search-input" id="searchInput" placeholder="タイトル・本文で検索" />
+      <div class="search-box">
+        <input type="text" id="searchInput" class="search-input" placeholder="プロンプトを検索...">
+        <span class="search-icon">🔍</span>
+        <button class="search-clear" id="searchClear">✕</button>
+      </div>
       <div class="filters" id="filterContainer"></div>
     </div>
 
     <main class="main">
-      <div class="content" id="content"></div>
+      <div class="content" id="promptList"></div>
     </main>
   </div>
 
   <div class="sheet" id="editSheet">
     <div class="sheet-content">
       <div class="sheet-header">
-        <button class="btn-back" onclick="closeEdit()">▽ 戻る</button>
-        <div class="sheet-title" id="sheetTitle">新規作成</div>
-        <button class="btn-back" onclick="saveEdit()" style="font-weight:900;color:#1e293b;">保存</button>
+        <button class="btn-back" id="closeEditBtn">▽</button>
+        <div class="sheet-title">プロンプト編集</div>
+        <div style="width: 40px;"></div>
       </div>
       <div class="sheet-body">
         <div class="form-group">
           <label class="form-label">カテゴリ</label>
-          <div id="categoryChips" style="display:flex;flex-wrap:wrap;gap:8px;"></div>
+          <div class="category-chips" id="categoryChips"></div>
         </div>
         <div class="form-group">
           <label class="form-label">タイトル</label>
-          <input type="text" class="form-input" id="editTitle" placeholder="例：一発OKが出るビジネスメール" />
+          <input type="text" id="editTitle" class="form-input" placeholder="プロンプトのタイトル">
         </div>
         <div class="form-group">
-          <label class="form-label">概要</label>
-          <input type="text" class="form-input" id="editSummary" placeholder="どんな時に使うプロンプトか" />
+          <label class="form-label">説明（オプション）</label>
+          <input type="text" id="editSummary" class="form-input" placeholder="簡単な説明">
         </div>
         <div class="form-group">
-          <label class="form-label">プロンプト本文</label>
-          <textarea class="form-textarea" id="editBody" placeholder="プロンプトの中身"></textarea>
+          <label class="form-label">本文</label>
+          <textarea id="editBody" class="form-textarea" placeholder="プロンプトの本文"></textarea>
         </div>
-        <button class="btn-save" id="saveBtn" onclick="saveEdit()">保存</button>
-        <button class="btn-delete" id="deleteBtn" onclick="deleteEdit()" style="display:none;">削除</button>
+        <button class="btn-save" id="saveEditBtn">💾 保存</button>
+        <button class="btn-delete" id="deleteEditBtn">🗑️ 削除</button>
       </div>
     </div>
   </div>
@@ -170,27 +222,23 @@
   <div class="sheet" id="settingsSheet">
     <div class="sheet-content">
       <div class="sheet-header">
-        <button class="btn-back" onclick="closeSettings()">▽ 戻る</button>
+        <button class="btn-back" id="closeSettingsBtn">▽</button>
         <div class="sheet-title">設定</div>
-        <div style="width:44px;"></div>
+        <div style="width: 40px;"></div>
       </div>
       <div class="sheet-body">
         <div class="form-group">
-          <label class="form-label">バックアップ</label>
-          <button class="btn-save" onclick="exportData()" style="background:#3b82f6;">📥 JSONをダウンロード</button>
+          <label class="form-label">📥 インポート</label>
+          <input type="file" id="importInput" accept=".json" style="display:none">
+          <button class="btn-save" style="background:#10b981;" onclick="document.getElementById('importInput').click()">ファイルを選択</button>
         </div>
         <div class="form-group">
-          <label class="form-label">復元</label>
-          <button class="btn-save" onclick="document.getElementById('importFile').click()" style="background:#8b5cf6;">📤 JSONをインポート</button>
-          <input type="file" id="importFile" accept=".json" style="display:none;" onchange="importData(event)" />
+          <label class="form-label">📤 エクスポート</label>
+          <button class="btn-save" style="background:#3b82f6;" onclick="window.exportData()">ダウンロード</button>
         </div>
         <div class="form-group">
-          <label class="form-label">テーマ</label>
-          <button class="btn-save" onclick="toggleDarkMode()" style="background:#6b7280;">🌙 ダークモード切り替え</button>
-        </div>
-        <div class="form-group">
-          <label class="form-label">データ</label>
-          <button class="btn-delete" onclick="resetData()">🗑️ すべて削除</button>
+          <label class="form-label">⚠️ リセット</label>
+          <button class="btn-delete" onclick="window.resetData()">初期化</button>
         </div>
       </div>
     </div>
@@ -198,319 +246,7 @@
 
   <div class="toast" id="toast"></div>
 
-  <script>
-    const APP_VERSION = "2026-07-01-v3";
-    const STORAGE_KEY = "prompt_drawer_data";
-    const THEME_KEY = "prompt_drawer_theme";
-    const DRAFT_KEY = "prompt_drawer_draft";
-
-    const CATEGORIES = {
-      business: { label: "ビジネス", color: "#3b82f6" },
-      development: { label: "開発", color: "#10b981" },
-      writing: { label: "文章作成", color: "#8b5cf6" },
-      learning: { label: "学習", color: "#f59e0b" },
-      sparring: { label: "壁打ち", color: "#ef4444" },
-      daily: { label: "日常", color: "#06b6d4" },
-    };
-
-    const SEED = [
-      { id: "p1", category: "business", title: "一発OKが出るビジネスメール", summary: "相手・要件・温度感を指定すると、過不足ないメール文面を生成。", body: "あなたは一流の営業アシスタントです。以下の条件で、相手が読んですぐ動けるビジネスメールを作成してください。\n\n# 宛先・関係性：[例：初めて連絡する取引先の部長]\n# 目的：[例：打ち合わせの日程調整]\n# 伝えたい要件：\n- [要件1]\n- [要件2]\n\n# 出力ルール\n- 件名を最初に提示\n- 結論→理由→依頼の順で簡潔に\n- 敬語は自然に" },
-      { id: "p2", category: "development", title: "単一HTMLの神ツールを一発生成", summary: "Vanilla JS完結・localStorage保存・スマホ最適化。", body: "あなたは一流のフロントエンドエンジニアです。以下の仕様で、コピペしてそのまま動く単一HTMLファイルを作ってください。\n\n# 作りたいツール：[ここに]\n# 主な機能：\n- [機能1]\n- [機能2]\n\n# 必須要件\n- HTML/CSS/JS を1ファイルに収める\n- localStorageに自動保存\n- スマホ操作性を最優先" },
-      { id: "p3", category: "writing", title: "バズるX（Twitter）投稿", summary: "テーマから、思わず反応したくなる投稿案を複数生成。", body: "あなたはSNSで数字を出すコピーライターです。次のテーマで、拡散されやすいX投稿を作ってください。\n\n# テーマ：[ここに]\n# 狙う反応：[共感 / 保存 / 議論 / 笑い]\n# 文字数：140字前後\n\n# ルール\n- 最初の1行で手を止めさせる\n- トーン違いで3案出す" },
-      { id: "p4", category: "learning", title: "難しい概念を中学生にもわかる説明で", summary: "専門用語を身近な例えでかみ砕く。", body: "次のことを、予備知識ゼロの人にも分かるように説明してください。\n\n# 説明してほしいこと：[ここに]\n\n# 順番\n1. 一言でいうと\n2. 身近なたとえ話\n3. 仕組みをステップで\n4. なぜ重要か\n5. よくある誤解" },
-      { id: "p5", category: "sparring", title: "アイデアの壁打ち相手", summary: "否定せず広げ、良い問いを返してアイデアを育てる。", body: "私のアイデアの壁打ち相手になってください。すぐ結論を出さず、一緒に思考を広げてほしいです。\n\n# 今考えていること：\n[ここに]\n\n# あなたの役割\n- まず面白い点を1つ挙げる\n- 視点が広がる質問を2〜3個返す\n- 深掘りや別角度を提示\n- 出そろったら次の一歩を提案" },
-      { id: "p6", category: "daily", title: "冷蔵庫の余り物で献立", summary: "手持ちの食材と気分から、作れる料理を提案。", body: "今ある食材で作れる献立を提案してください。\n\n# ある食材：[ここに]\n# 気分・条件：[ここに]\n\n# 出力\n- 主菜1つ＋副菜1つ\n- 作り方（簡潔に）\n- 余った食材の翌日アレンジ案" },
-    ];
-
-    let allPrompts = [];
-    let currentFilter = "all";
-    let editingPrompt = null;
-
-    document.addEventListener("DOMContentLoaded", () => {
-      loadData();
-      initTheme();
-      registerServiceWorker();
-      renderFilters();
-      renderPrompts();
-      document.getElementById("searchInput").addEventListener("input", renderPrompts);
-      window.addEventListener("popstate", () => { closeEdit(); closeSettings(); });
-      setupAutoSave();
-    });
-
-    function loadData() {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      allPrompts = stored ? JSON.parse(stored) : SEED.map((p, i) => ({ ...p, id: `p${Date.now()}_${i}` }));
-      if (!stored) saveData();
-      document.getElementById("promptCount").textContent = `${allPrompts.length} prompts`;
-    }
-
-    function saveData() {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(allPrompts));
-    }
-
-    // 入力中データの自動保存(リロード/切替/強制終了しても消えない)
-    function setupAutoSave() {
-      ["editTitle", "editSummary", "editBody"].forEach(id => {
-        document.getElementById(id).addEventListener("input", () => {
-          const draft = {
-            title: document.getElementById("editTitle").value,
-            summary: document.getElementById("editSummary").value,
-            body: document.getElementById("editBody").value,
-            category: editingPrompt?.category || "business",
-            editId: editingPrompt?.id || null
-          };
-          localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
-        });
-      });
-    }
-
-    function restoreDraft() {
-      const raw = localStorage.getItem(DRAFT_KEY);
-      if (!raw) return null;
-      try { return JSON.parse(raw); } catch { return null; }
-    }
-
-    function initTheme() {
-      const dark = localStorage.getItem(THEME_KEY) === "dark";
-      if (dark) document.body.classList.add("dark-mode");
-    }
-
-    function toggleDarkMode() {
-      const isDark = document.body.classList.toggle("dark-mode");
-      localStorage.setItem(THEME_KEY, isDark ? "dark" : "light");
-      showToast(isDark ? "🌙 ダークモードON" : "☀️ ライトモードON");
-    }
-
-    function registerServiceWorker() {
-      if ("serviceWorker" in navigator) {
-        navigator.serviceWorker.register("sw.js", { scope: "/" }).then(reg => {
-          if (navigator.serviceWorker.controller) {
-            navigator.serviceWorker.controller.postMessage({ type: "SET_VERSION", version: APP_VERSION });
-          }
-          navigator.serviceWorker.addEventListener("controllerchange", () => {
-            location.reload();
-          });
-        }).catch(() => {});
-      }
-    }
-
-    function renderFilters() {
-      const container = document.getElementById("filterContainer");
-      container.innerHTML = "";
-      const cats = ["all", "business", "development", "writing", "learning", "sparring", "daily"];
-      cats.forEach(cat => {
-        const count = cat === "all" ? allPrompts.length : allPrompts.filter(p => p.category === cat).length;
-        const label = cat === "all" ? "すべて" : CATEGORIES[cat].label;
-        const btn = document.createElement("button");
-        btn.className = `filter-chip ${currentFilter === cat ? "active" : ""}`;
-        btn.textContent = `${label} (${count})`;
-        btn.onclick = () => { currentFilter = cat; renderFilters(); renderPrompts(); };
-        container.appendChild(btn);
-      });
-    }
-
-    function renderPrompts() {
-      const q = document.getElementById("searchInput").value.toLowerCase();
-      let filtered = allPrompts.filter(p => {
-        const catOk = currentFilter === "all" || p.category === currentFilter;
-        const qOk = !q || p.title.toLowerCase().includes(q) || p.summary.toLowerCase().includes(q) || p.body.toLowerCase().includes(q);
-        return catOk && qOk;
-      });
-
-      if (filtered.length === 0) {
-        document.getElementById("content").innerHTML = `<div style="text-align:center;padding:40px 20px;"><div style="font-size:48px;margin-bottom:12px;">📭</div><div style="font-size:16px;font-weight:700;margin-bottom:16px;">見つかりませんでした</div><button class="btn-save" onclick="openEdit()">➕ 新規追加</button></div>`;
-        return;
-      }
-
-      document.getElementById("content").innerHTML = filtered.map(p => `
-        <div class="prompt-card">
-          <div class="card-header" onclick="toggleCard(this)">
-            <div class="card-bar" style="background:${CATEGORIES[p.category].color}"></div>
-            <div class="card-header-content">
-              <div>
-                <div class="card-title">${escapeHtml(p.title)}</div>
-                <div class="card-summary">${escapeHtml(p.summary)}</div>
-              </div>
-              <div class="card-toggle">▼</div>
-            </div>
-          </div>
-          <div class="card-body">
-            <div class="card-body-content">
-              <pre class="prompt-text">${escapeHtml(p.body)}</pre>
-              <div class="card-actions">
-                <button class="btn-copy" onclick="copyPrompt('${p.id}', event)">📋 コピー</button>
-                <button class="btn-edit" onclick="openEdit('${p.id}', event)">✏️ 編集</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      `).join("");
-    }
-
-    function escapeHtml(str) {
-      const div = document.createElement("div");
-      div.textContent = str;
-      return div.innerHTML;
-    }
-
-    function toggleCard(el) {
-      el.querySelector(".card-toggle").classList.toggle("open");
-      el.nextElementSibling.classList.toggle("open");
-    }
-
-    function openEdit(id, e) {
-      if (e) e.stopPropagation();
-      editingPrompt = id ? { ...allPrompts.find(p => p.id === id) } : null;
-      document.getElementById("sheetTitle").textContent = editingPrompt ? "プロンプトを編集" : "新規作成";
-
-      const draft = !id ? restoreDraft() : null;
-
-      if (editingPrompt) {
-        document.getElementById("editTitle").value = editingPrompt.title;
-        document.getElementById("editSummary").value = editingPrompt.summary;
-        document.getElementById("editBody").value = editingPrompt.body;
-        document.getElementById("deleteBtn").style.display = "block";
-      } else if (draft) {
-        document.getElementById("editTitle").value = draft.title || "";
-        document.getElementById("editSummary").value = draft.summary || "";
-        document.getElementById("editBody").value = draft.body || "";
-        editingPrompt = { category: draft.category || "business" };
-        document.getElementById("deleteBtn").style.display = "none";
-      } else {
-        document.getElementById("editTitle").value = "";
-        document.getElementById("editSummary").value = "";
-        document.getElementById("editBody").value = "";
-        document.getElementById("deleteBtn").style.display = "none";
-      }
-      renderCategoryChips();
-      document.getElementById("editSheet").classList.add("open");
-      window.history.pushState(null, "");
-    }
-
-    function closeEdit() {
-      document.getElementById("editSheet").classList.remove("open");
-      editingPrompt = null;
-    }
-
-    function renderCategoryChips() {
-      const container = document.getElementById("categoryChips");
-      const current = editingPrompt?.category || "business";
-      container.innerHTML = Object.entries(CATEGORIES).map(([key, cat]) => `
-        <button style="padding:10px 14px;border:1px solid #e2e8f0;border-radius:16px;background:white;cursor:pointer;font-size:12px;font-weight:600;${current === key ? `background:${cat.color};color:white;border-color:${cat.color};` : ''}" onclick="selectCategory('${key}', this)">${cat.label}</button>
-      `).join("");
-    }
-
-    function selectCategory(cat, el) {
-      document.querySelectorAll("#categoryChips button").forEach(btn => {
-        btn.style.background = "white"; btn.style.color = "inherit"; btn.style.borderColor = "#e2e8f0";
-      });
-      el.style.background = CATEGORIES[cat].color;
-      el.style.color = "white";
-      el.style.borderColor = CATEGORIES[cat].color;
-      if (!editingPrompt) editingPrompt = {};
-      editingPrompt.category = cat;
-    }
-
-    function saveEdit() {
-      const title = document.getElementById("editTitle").value.trim();
-      const summary = document.getElementById("editSummary").value.trim();
-      const body = document.getElementById("editBody").value.trim();
-      if (!title || !body) { showToast("❌ タイトルと本文は必須です"); return; }
-
-      if (editingPrompt && editingPrompt.id) {
-        const idx = allPrompts.findIndex(p => p.id === editingPrompt.id);
-        allPrompts[idx] = { ...editingPrompt, title, summary, body };
-      } else {
-        allPrompts.unshift({ id: `p${Date.now()}`, title, summary, body, category: editingPrompt?.category || "business" });
-      }
-      saveData();
-      localStorage.removeItem(DRAFT_KEY);
-      closeEdit();
-      renderFilters();
-      renderPrompts();
-      showToast("✅ 保存しました");
-    }
-
-    function deleteEdit() {
-      if (!window.confirm("本当に削除しますか？")) return;
-      allPrompts = allPrompts.filter(p => p.id !== editingPrompt.id);
-      saveData();
-      closeEdit();
-      renderFilters();
-      renderPrompts();
-      showToast("🗑️ 削除しました");
-    }
-
-    function copyPrompt(id, e) {
-      e.stopPropagation();
-      const prompt = allPrompts.find(p => p.id === id);
-      if (!prompt) return;
-      navigator.clipboard.writeText(prompt.body).then(() => {
-        const btn = e.target;
-        const text = btn.textContent;
-        btn.textContent = "✅ コピーしました!";
-        btn.classList.add("copied");
-        setTimeout(() => { btn.textContent = text; btn.classList.remove("copied"); }, 1500);
-        showToast("✅ コピーしました");
-      }).catch(() => showToast("❌ コピーに失敗しました"));
-    }
-
-    function openSettings() {
-      document.getElementById("settingsSheet").classList.add("open");
-      window.history.pushState(null, "");
-    }
-    function closeSettings() {
-      document.getElementById("settingsSheet").classList.remove("open");
-    }
-
-    function exportData() {
-      const data = JSON.stringify(allPrompts, null, 2);
-      const blob = new Blob([data], { type: "application/json" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `prompts_${new Date().toISOString().slice(0, 10)}.json`;
-      a.click();
-      URL.revokeObjectURL(url);
-      showToast("📥 ダウンロードしました");
-    }
-
-    function importData(e) {
-      const file = e.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = (ev) => {
-        try {
-          const data = JSON.parse(ev.target.result);
-          if (!Array.isArray(data)) throw new Error();
-          allPrompts = data.map((p, i) => ({ id: p.id || `p${Date.now()}_${i}`, category: p.category || "business", title: p.title || "", summary: p.summary || "", body: p.body || "" }));
-          saveData();
-          renderFilters();
-          renderPrompts();
-          showToast(`✅ ${data.length}件を復元しました`);
-        } catch {
-          showToast("❌ インポートに失敗しました");
-        }
-      };
-      reader.readAsText(file);
-      e.target.value = "";
-    }
-
-    function resetData() {
-      if (!window.confirm("すべてのプロンプトを削除しますか？")) return;
-      allPrompts = SEED.map((p, i) => ({ ...p, id: `p${Date.now()}_${i}` }));
-      saveData();
-      renderFilters();
-      renderPrompts();
-      showToast("🔄 リセットしました");
-    }
-
-    function showToast(msg) {
-      const toast = document.getElementById("toast");
-      toast.textContent = msg;
-      toast.classList.add("show");
-      setTimeout(() => toast.classList.remove("show"), 2000);
-    }
-  </script>
+  <script src="app.js"></script>
+  <script src="config.json"></script>
 </body>
 </html>
