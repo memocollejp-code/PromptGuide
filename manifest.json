@@ -1,10 +1,10 @@
 {
-  "id": "./",
+  "id": "/PromptGuide/",
   "name": "プロンプトの引き出し",
   "short_name": "プロンプト",
   "description": "Claudeのプロンプトを整理・管理・コピーするPWA",
-  "start_url": "./index.html",
-  "scope": "./",
+  "start_url": "/PromptGuide/index.html",
+  "scope": "/PromptGuide/",
   "display": "standalone",
   "display_override": ["standalone", "minimal-ui"],
   "orientation": "portrait-primary",
