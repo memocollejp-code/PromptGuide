@@ -1,4 +1,4 @@
-// prompt_drawer sw.js v1.3.0
+// prompt_drawer sw.js v1.4.0
 const CACHE_PREFIX = "prompt-drawer";
 let appVersion = "20260704v1.3.0";
 
