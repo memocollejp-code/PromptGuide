@@ -1,6 +1,6 @@
 // prompt_drawer sw.js v1.4.0
 const CACHE_PREFIX = "prompt-drawer";
-let appVersion = "20260704v1.3.0";
+let appVersion = "20260704v1.4.0";
 
 self.addEventListener("message", (event) => {
   if (event.data && event.data.type === "SET_VERSION") {
@@ -9,7 +9,13 @@ self.addEventListener("message", (event) => {
 });
 
 const CACHE_NAME = () => `${CACHE_PREFIX}-${appVersion}`;
-const URLS_TO_CACHE = ["./", "./index.html", "./manifest.json"];
+
+// パスをリポジトリ名からの絶対パスに修正
+const URLS_TO_CACHE = [
+  "/PromptGuide/",
+  "/PromptGuide/index.html",
+  "/PromptGuide/manifest.json"
+];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
@@ -46,6 +52,6 @@ self.addEventListener("fetch", (event) => {
       const clone = response.clone();
       caches.open(CACHE_NAME()).then((cache) => cache.put(request, clone));
       return response;
-    }).catch(() => caches.match(request).then(r => r || caches.match("./index.html")))
+    }).catch(() => caches.match(request).then(r => r || caches.match("/PromptGuide/index.html")))
   );
 });
