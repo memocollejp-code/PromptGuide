@@ -173,7 +173,7 @@
       <div class="header-left">
         <div class="header-icon">✨</div>
         <div class="header-text">
-          <div class="header-title">プロンプトの引き出し <span style="font-size:10px;font-weight:600;color:#94a3b8;">v1.4.0</span></div>
+          <div class="header-title">プロンプトの引き出し <span style="font-size:10px;font-weight:600;color:#94a3b8;">v1.5.0</span></div>
           <div class="header-subtitle" id="promptCount">70 prompts</div>
         </div>
       </div>
@@ -268,10 +268,59 @@
 
   <script>
     // ========== APP VERSION & CONSTANTS ==========
-    const APP_VERSION = "20260704v1.4.0";
+    const APP_VERSION = "20260705v1.5.0";
     const STORAGE_KEY = "prompt_drawer_data";
     const THEME_KEY = "prompt_drawer_theme";
     const DRAFT_KEY = "prompt_drawer_draft";
+
+    // ========== INDEXEDDB (永続化ストレージ) ==========
+    const IDB_NAME = "PromptDrawerDB";
+    const IDB_VERSION = 1;
+    const IDB_STORE = "kv";
+
+    function idbOpen() {
+      return new Promise((resolve, reject) => {
+        const req = indexedDB.open(IDB_NAME, IDB_VERSION);
+        req.onupgradeneeded = () => {
+          const db = req.result;
+          if (!db.objectStoreNames.contains(IDB_STORE)) {
+            db.createObjectStore(IDB_STORE, { keyPath: "key" });
+          }
+        };
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+      });
+    }
+
+    function idbGet(key) {
+      return idbOpen().then(db => new Promise((resolve, reject) => {
+        const tx = db.transaction(IDB_STORE, "readonly");
+        const req = tx.objectStore(IDB_STORE).get(key);
+        req.onsuccess = () => resolve(req.result ? req.result.value : undefined);
+        req.onerror = () => reject(req.error);
+      }));
+    }
+
+    function idbSet(key, value) {
+      return idbOpen().then(db => new Promise((resolve, reject) => {
+        const tx = db.transaction(IDB_STORE, "readwrite");
+        const req = tx.objectStore(IDB_STORE).put({ key, value });
+        req.onsuccess = () => resolve(true);
+        req.onerror = () => reject(req.error);
+      }));
+    }
+
+    // OSにデータを勝手に消さないようリクエスト（Storage Manager API）
+    async function requestPersistentStorage() {
+      try {
+        if (navigator.storage && navigator.storage.persist) {
+          const granted = await navigator.storage.persist();
+          console.log(granted ? "✅ 永続化ストレージ許可" : "⚠️ 永続化は未許可（保存自体は継続動作）");
+        }
+      } catch (err) {
+        console.log("❌ persist()実行エラー:", err);
+      }
+    }
 
     // Category definitions
     const CATEGORIES = {
@@ -402,8 +451,9 @@
     let currentDarkMode = false;
 
     // ========== INIT ==========
-    document.addEventListener("DOMContentLoaded", () => {
-      loadData();
+    document.addEventListener("DOMContentLoaded", async () => {
+      await requestPersistentStorage();
+      await loadData();
       initTheme();
       registerServiceWorker();
       renderFilters();
@@ -421,24 +471,49 @@
     });
 
     // ========== DATA MANAGEMENT ==========
-    function loadData() {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        try {
-          allPrompts = JSON.parse(stored);
-        } catch {
-          allPrompts = SEED.map((p, i) => ({ ...p, id: `p${Date.now()}_${i}` }));
-          saveData();
-        }
-      } else {
-        allPrompts = SEED.map((p, i) => ({ ...p, id: `p${Date.now()}_${i}` }));
-        saveData();
+    async function loadData() {
+      let stored;
+      try {
+        stored = await idbGet(STORAGE_KEY);
+      } catch (err) {
+        // 読み込みエラー時は絶対に既存データを上書きしない（ログのみ出力し保護する）
+        console.error("❌ データ読み込みエラー（既存データは保護されます）:", err);
+        allPrompts = [];
+        document.getElementById("promptCount").textContent = "読み込みエラー";
+        showToast("⚠️ データ読み込みに失敗しました。再読み込みしてください");
+        return;
       }
+
+      if (stored && Array.isArray(stored)) {
+        allPrompts = stored;
+      } else {
+        // IndexedDBが空 → 旧localStorageからの移行を試みる（初回のみ）
+        const legacy = localStorage.getItem(STORAGE_KEY);
+        if (legacy) {
+          try {
+            allPrompts = JSON.parse(legacy);
+            await saveData();
+            console.log("✅ localStorage → IndexedDB へ移行しました");
+          } catch {
+            allPrompts = SEED.map((p, i) => ({ ...p, id: `p${Date.now()}_${i}` }));
+            await saveData();
+          }
+        } else {
+          allPrompts = SEED.map((p, i) => ({ ...p, id: `p${Date.now()}_${i}` }));
+          await saveData();
+        }
+      }
+
       document.getElementById("promptCount").textContent = `${allPrompts.length} prompts`;
     }
 
-    function saveData() {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(allPrompts));
+    async function saveData() {
+      try {
+        await idbSet(STORAGE_KEY, allPrompts);
+      } catch (err) {
+        console.error("❌ データ保存エラー:", err);
+        showToast("⚠️ 保存に失敗しました（データは変更前の状態のままです）");
+      }
     }
 
     function setupAutoSave() {
@@ -456,7 +531,7 @@
     // ========== SERVICE WORKER ==========
     function registerServiceWorker() {
       if ("serviceWorker" in navigator) {
-        navigator.serviceWorker.register("sw.js").then((reg) => {
+        navigator.serviceWorker.register("sw.js", { scope: "/" }).then((reg) => {
           console.log("✅ Service Worker registered:", reg);
           reg.addEventListener("updatefound", () => {
             const newWorker = reg.installing;
@@ -538,7 +613,6 @@
       });
     }
 
-    // ========== COPY & EDIT AND OTHERS ==========
     function renderPrompts() {
       const container = document.getElementById("content");
       const query = document.getElementById("searchInput").value.toLowerCase();
@@ -636,7 +710,7 @@
       const container = document.getElementById("categoryChips");
       const currentCat = editingPrompt?.category || "business";
       container.innerHTML = CATEGORY_ORDER.map(cat => `
-        <button class="category-chip ${currentCat === cat ? "active" : ""}" data-category="${cat}" style="${currentCat === cat ? `background: ${CATEGORIES[cat].color}; border-color: ${CATEGORIES[cat].color};` : ""}" onclick="selectCategory('${cat}', this)">
+        <button class="category-chip ${currentCat === cat ? "active" : ""}" style="${currentCat === cat ? `background: ${CATEGORIES[cat].color}; border-color: ${CATEGORIES[cat].color};` : ""}" onclick="selectCategory('${cat}', this)">
           ${CATEGORIES[cat].label}
         </button>
       `).join("");
@@ -655,7 +729,7 @@
       else editingPrompt = { category: cat };
     }
 
-    function saveEdit() {
+    async function saveEdit() {
       const title = document.getElementById("editTitle").value.trim();
       const summary = document.getElementById("editSummary").value.trim();
       const body = document.getElementById("editBody").value.trim();
@@ -673,18 +747,18 @@
         allPrompts.unshift({ id: `p${Date.now()}_${Math.random().toString(36).slice(2,7)}`, title, summary, body, category });
       }
 
-      saveData();
+      await saveData();
       closeEdit();
       renderFilters();
       renderPrompts();
       showToast("✅ 保存しました");
     }
 
-    function deleteEdit() {
+    async function deleteEdit() {
       if (!editingPrompt?.id) return;
       if (!confirm("本当に削除しますか？")) return;
       allPrompts = allPrompts.filter(p => p.id !== editingPrompt.id);
-      saveData();
+      await saveData();
       closeEdit();
       renderFilters();
       renderPrompts();
@@ -698,7 +772,7 @@
       if (!prompt) return;
 
       navigator.clipboard.writeText(prompt.body).then(() => {
-        const btn = e.target;
+        const btn = event.target;
         const text = btn.textContent;
         btn.textContent = "✅ コピーしました!";
         btn.classList.add("copied");
@@ -718,7 +792,6 @@
       pushHistory();
     }
 
-    // ========== OTHERS ==========
     function closeSettings() {
       document.getElementById("settingsSheet").classList.remove("open");
     }
@@ -739,7 +812,7 @@
       const file = e.target.files[0];
       if (!file) return;
       const reader = new FileReader();
-      reader.onload = (ev) => {
+      reader.onload = async (ev) => {
         try {
           const data = JSON.parse(ev.target.result);
           if (!Array.isArray(data)) throw new Error();
@@ -758,8 +831,9 @@
               body: p.body || ""
             };
           });
+          // 既存データは消さず、末尾に追加する（誤って上書き消去するのを防ぐ）
           allPrompts = [...allPrompts, ...imported];
-          saveData();
+          await saveData();
           renderFilters();
           renderPrompts();
           showToast(`✅ ${imported.length}件を追加しました（既存データは保持）`);
@@ -771,10 +845,10 @@
       e.target.value = "";
     }
 
-    function resetData() {
+    async function resetData() {
       if (!confirm("すべてのプロンプトを削除しますか？")) return;
       allPrompts = SEED.map((p, i) => ({ ...p, id: `p${Date.now()}_${i}` }));
-      saveData();
+      await saveData();
       renderFilters();
       renderPrompts();
       showToast("🔄 リセットしました");
