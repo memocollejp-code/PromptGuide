@@ -34,7 +34,7 @@
     .header-icon { width: 36px; height: 36px; background: #1e293b; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 20px; flex-shrink: 0; }
     body.dark-mode .header-icon { background: #334155; }
     .header-text { min-width: 0; }
-    .header-title { font-size: 14px; font-weight: 800; line-height: 1.2; text-truncate: true; }
+    .header-title { font-size: 14px; font-weight: 800; line-height: 1.2; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .header-subtitle { font-size: 10px; color: #94a3b8; font-family: monospace; margin-top: 2px; }
     body.dark-mode .header-subtitle { color: #64748b; }
 
@@ -76,6 +76,7 @@
     .prompt-card { background: white; border: 1px solid #e2e8f0; border-radius: 12px; margin-bottom: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.05); transition: box-shadow 0.2s; }
     body.dark-mode .prompt-card { background: #1e293b; border-color: #334155; }
     .prompt-card:hover { box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+    .prompt-card.is-favorite { border-color: #f59e0b; box-shadow: 0 0 0 2px #f59e0b20; }
 
     .card-header { display: flex; align-items: stretch; cursor: pointer; user-select: none; }
     .card-bar { width: 4px; flex-shrink: 0; }
@@ -84,8 +85,14 @@
     .card-code { font-size: 10px; font-weight: 900; letter-spacing: 1px; font-family: monospace; line-height: 1; margin-bottom: 4px; }
     .card-title { font-size: 14px; font-weight: 700; line-height: 1.3; margin-bottom: 4px; }
     body.dark-mode .card-title { color: #f1f5f9; }
-    .card-summary { font-size: 12px; color: #64748b; line-height: 1.3; }
+    .card-summary { font-size: 12px; color: #64748b; line-height: 1.3; white-space: pre-wrap; word-break: break-word; }
     body.dark-mode .card-summary { color: #94a3b8; }
+
+    .card-header-actions { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+    .btn-fav { background: none; border: none; font-size: 20px; line-height: 1; cursor: pointer; padding: 4px; color: #cbd5e1; flex-shrink: 0; transition: color 0.2s; }
+    .btn-fav.active { color: #f59e0b; }
+    body.dark-mode .btn-fav { color: #475569; }
+    body.dark-mode .btn-fav.active { color: #fbbf24; }
 
     .card-toggle { width: 20px; height: 20px; flex-shrink: 0; margin-top: 2px; color: #94a3b8; transition: transform 0.3s; }
     .card-toggle.open { transform: rotate(180deg); }
@@ -139,6 +146,14 @@
     .form-label { display: block; font-size: 12px; font-weight: 700; color: #475569; margin-bottom: 8px; }
     body.dark-mode .form-label { color: #cbd5e1; }
 
+    .favorite-toggle { display: flex; align-items: center; gap: 8px; padding: 12px; background: #f8fafc; border-radius: 8px; cursor: pointer; user-select: none; margin-bottom: 12px; }
+    body.dark-mode .favorite-toggle { background: #1e293b; border: 1px solid #334155; }
+    .favorite-toggle:hover { background: #f0f3f8; }
+    body.dark-mode .favorite-toggle:hover { background: #334155; }
+    .favorite-icon { font-size: 20px; }
+    .favorite-text { font-size: 13px; font-weight: 600; color: #475569; flex: 1; }
+    body.dark-mode .favorite-text { color: #cbd5e1; }
+
     .category-chips { display: flex; flex-wrap: wrap; gap: 8px; }
     .category-chip { padding: 8px 12px; border: 1px solid #e2e8f0; border-radius: 16px; background: white; cursor: pointer; font-size: 12px; font-weight: 600; transition: all 0.2s; }
     .category-chip.active { color: white; border-color: transparent; }
@@ -148,692 +163,853 @@
     body.dark-mode .form-input, body.dark-mode .form-textarea { background: #1e293b; border-color: #334155; color: #f1f5f9; }
     .form-textarea { resize: vertical; min-height: 120px; font-family: monospace; }
 
-    .btn-save { width: 100%; padding: 12px; background: #1e293b; color: white; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; }
-    .btn-save:disabled { opacity: 0.5; cursor: not-allowed; }
-    body.dark-mode .btn-save { background: #334155; }
+    .form-actions { display: flex; gap: 8px; margin-bottom: 12px; }
+    .form-actions-delete { display: flex; gap: 8px; }
+    .btn-primary, .btn-secondary, .btn-delete { flex: 1; padding: 12px; border: none; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.2s; }
+    .btn-primary { background: #1e293b; color: white; }
+    .btn-primary:hover { background: #0f172a; }
+    .btn-secondary { background: white; border: 1px solid #e2e8f0; color: #475569; }
+    .btn-secondary:hover { background: #f8fafc; }
+    .btn-delete { background: #ef4444; color: white; }
+    .btn-delete:hover { background: #dc2626; }
+    .btn-delete.hidden { display: none; }
+    body.dark-mode .btn-primary { background: #334155; }
+    body.dark-mode .btn-primary:hover { background: #475569; }
+    body.dark-mode .btn-secondary { background: #1e293b; border-color: #334155; color: #cbd5e1; }
+    body.dark-mode .btn-secondary:hover { background: #334155; }
+    body.dark-mode .btn-delete { background: #dc2626; }
+    body.dark-mode .btn-delete:hover { background: #b91c1c; }
 
-    .btn-delete { width: 100%; padding: 12px; margin-top: 12px; background: #ef4444; color: white; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; }
+    .category-manage-item { display: flex; align-items: center; gap: 12px; padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 12px; }
+    body.dark-mode .category-manage-item { background: #1e293b; border-color: #334155; }
 
-    .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #1e293b; color: white; padding: 10px 16px; border-radius: 20px; font-size: 12px; font-weight: 700; display: flex; align-items: center; gap: 8px; z-index: 50; animation: slideUpToast 0.2s ease-out; pointer-events: none; }
-    @keyframes slideUpToast { from { transform: translateX(-50%) translateY(20px); opacity: 0; } to { transform: translateX(-50%) translateY(0); opacity: 1; } }
+    .category-color-input { width: 40px; height: 40px; border: 1px solid #e2e8f0; border-radius: 8px; cursor: pointer; flex-shrink: 0; }
+    body.dark-mode .category-color-input { border-color: #334155; }
 
-    .settings-item { padding: 12px; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between; }
-    body.dark-mode .settings-item { border-bottom-color: #334155; }
-    .settings-item:last-child { border-bottom: none; }
-    .settings-label { font-size: 13px; font-weight: 600; }
-    .toggle { width: 50px; height: 28px; background: #cbd5e1; border-radius: 14px; cursor: pointer; position: relative; transition: background 0.3s; }
-    .toggle.on { background: #10b981; }
-    .toggle-circle { position: absolute; width: 24px; height: 24px; background: white; border-radius: 50%; top: 2px; left: 2px; transition: left 0.3s; }
-    .toggle.on .toggle-circle { left: 24px; }
+    .category-label-input { flex: 1; padding: 8px 12px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 12px; font-weight: 600; }
+    body.dark-mode .category-label-input { background: #0f172a; border-color: #334155; color: #f1f5f9; }
+
+    .category-label-input:disabled { background: #f8fafc; color: #94a3b8; cursor: not-allowed; }
+    body.dark-mode .category-label-input:disabled { background: #0f172a; color: #64748b; }
+
+    .btn-category-delete { background: none; border: none; font-size: 18px; cursor: pointer; padding: 4px; flex-shrink: 0; }
+
+    .category-protected-badge { font-size: 10px; font-weight: 700; color: #94a3b8; flex-shrink: 0; }
+
+    .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #1e293b; color: white; padding: 12px 20px; border-radius: 8px; font-size: 13px; font-weight: 600; z-index: 50; display: none; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); animation: slideUpToast 0.2s ease-out; }
+    @keyframes slideUpToast { from { transform: translate(-50%, 100%); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }
+    body.dark-mode .toast { background: #334155; }
+
+    .hidden { display: none !important; }
   </style>
 </head>
 <body>
   <div class="app">
-    <header class="header">
+    <div class="header">
       <div class="header-left">
-        <div class="header-icon">✨</div>
+        <div class="header-icon">📋</div>
         <div class="header-text">
-          <div class="header-title">プロンプトの引き出し <span style="font-size:10px;font-weight:600;color:#94a3b8;">v1.5.0</span></div>
-          <div class="header-subtitle" id="promptCount">70 prompts</div>
+          <div class="header-title">プロンプト引き出し</div>
+          <div class="header-subtitle">v2.4.0 FINAL</div>
         </div>
       </div>
       <div class="header-controls">
-        <button class="btn-icon" onclick="openSettings()" title="設定">⚙️</button>
-        <button class="btn-add" onclick="openEdit()" title="追加">➕ 追加</button>
+        <button class="btn-icon" onclick="toggleDarkMode()" title="ダークモード切り替え">🌙</button>
+        <button class="btn-icon" onclick="openCategoryManage()" title="カテゴリ管理">🏷️</button>
+        <button class="btn-icon" onclick="openMenu()" title="メニュー">⚙️</button>
+        <button class="btn-add" onclick="openEdit()">➕ 新規</button>
       </div>
-    </header>
+    </div>
 
     <div class="search-section">
       <div class="search-box">
-        <input type="text" class="search-input" id="searchInput" placeholder="タイトル・本文で検索" />
-        <span class="search-icon">🔍</span>
+        <input type="text" class="search-input" id="searchInput" placeholder="検索... (スペースで複数キーワード)">
+        <div class="search-icon">🔍</div>
         <button class="search-clear" id="searchClear" onclick="clearSearch()" style="display:none;">✕</button>
       </div>
-      <div class="filters" id="filterContainer"></div>
+      <div class="filters" id="filters"></div>
     </div>
 
-    <main class="main">
+    <div class="main">
       <div class="content" id="content"></div>
-    </main>
+    </div>
   </div>
 
-  <!-- Edit Sheet -->
+  <!-- EDIT SHEET -->
   <div class="sheet" id="editSheet">
     <div class="sheet-content">
       <div class="sheet-header">
-        <button class="btn-back" onclick="closeEdit()">◁ 戻る</button>
-        <div class="sheet-title" id="sheetTitle">新規作成</div>
-        <button class="btn-back" onclick="saveEdit()" style="color: #1e293b; font-weight: 900;">保存</button>
+        <button class="btn-back" onclick="handleBackButton()">◁ 戻る</button>
+        <div class="sheet-title">プロンプト</div>
+        <div style="width: 80px;"></div>
       </div>
       <div class="sheet-body">
         <div class="form-group">
-          <label class="form-label">カテゴリ</label>
-          <div class="category-chips" id="categoryChips"></div>
-        </div>
-        <div class="form-group">
-          <label class="form-label">タイトル</label>
-          <input type="text" class="form-input" id="editTitle" placeholder="例：一発OKが出るビジネスメール" />
-        </div>
-        <div class="form-group">
-          <label class="form-label">概要</label>
-          <input type="text" class="form-input" id="editSummary" placeholder="どんな時に使うプロンプトか、一言で" />
-        </div>
-        <div class="form-group">
-          <label class="form-label">プロンプト本文</label>
-          <textarea class="form-textarea" id="editBody" placeholder="プロンプトの中身"></textarea>
-        </div>
-        <button class="btn-save" id="saveBtn" onclick="saveEdit()">保存</button>
-        <button class="btn-delete" id="deleteBtn" onclick="deleteEdit()" style="display:none;">削除</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Settings Sheet -->
-  <div class="sheet" id="settingsSheet">
-    <div class="sheet-content">
-      <div class="sheet-header">
-        <button class="btn-back" onclick="closeSettings()">◁ 戻る</button>
-        <div class="sheet-title">設定</div>
-        <div style="width: 36px;"></div>
-      </div>
-      <div class="sheet-body">
-        <div class="form-group">
-          <label class="form-label">バックアップ</label>
-          <button class="btn-save" onclick="exportData()" style="background: #3b82f6;">📥 JSONをダウンロード</button>
-        </div>
-        <div class="form-group">
-          <label class="form-label">復元</label>
-          <button class="btn-save" onclick="document.getElementById('importFile').click()" style="background: #8b5cf6;">📤 JSONをインポート</button>
-          <p style="font-size:11px;color:#94a3b8;margin-top:6px;">※ 既存のプロンプトは消えず、末尾に追加されます</p>
-          <input type="file" id="importFile" accept=".json" style="display:none;" onchange="importData(event)" />
-        </div>
-        <div class="form-group">
-          <label class="form-label">テーマ</label>
-          <div class="settings-item" style="border: none; padding: 0; margin-top: 12px;">
-            <span class="settings-label">ダークモード</span>
-            <div class="toggle" id="darkToggle" onclick="toggleDarkMode()">
-              <div class="toggle-circle"></div>
-            </div>
+          <label class="form-label">お気に入り</label>
+          <div class="favorite-toggle" id="editFavoriteToggle" onclick="toggleEditFavorite()">
+            <div class="favorite-icon" id="editFavoriteIcon">♡</div>
+            <div class="favorite-text" id="editFavoriteText">お気に入りに追加</div>
           </div>
         </div>
         <div class="form-group">
-          <label class="form-label">データ</label>
-          <button class="btn-delete" onclick="resetData()">🗑️ すべて削除</button>
+          <label class="form-label">カテゴリ</label>
+          <div class="category-chips" id="editCategoryChips"></div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">タイトル</label>
+          <input type="text" class="form-input" id="editTitle" placeholder="タイトルを入力" oninput="saveDraftFromInputsDebounced()">
+        </div>
+        <div class="form-group">
+          <label class="form-label">概要</label>
+          <textarea class="form-textarea" id="editSummary" placeholder="簡潔に説明（改行可）" oninput="saveDraftFromInputsDebounced()"></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">本文</label>
+          <textarea class="form-textarea" id="editBody" placeholder="プロンプトを入力" oninput="saveDraftFromInputsDebounced()"></textarea>
+        </div>
+        <div class="form-actions">
+          <button class="btn-primary" onclick="saveEdit()">💾 保存</button>
+          <button class="btn-secondary" onclick="handleBackButton()">キャンセル</button>
+        </div>
+        <div class="form-actions-delete">
+          <button id="deleteBtn" class="btn-delete hidden" onclick="deletePrompt()">🗑️ 削除</button>
         </div>
       </div>
     </div>
   </div>
 
-  <div class="toast" id="toast" style="display:none;"></div>
+  <!-- CATEGORY MANAGE SHEET -->
+  <div class="sheet" id="categorySheet">
+    <div class="sheet-content">
+      <div class="sheet-header">
+        <button class="btn-back" onclick="handleBackButton()">◁ 戻る</button>
+        <div class="sheet-title">カテゴリ管理</div>
+        <div style="width: 80px;"></div>
+      </div>
+      <div class="sheet-body">
+        <div id="categoryManageList"></div>
+        <div class="form-group" style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
+          <label class="form-label">新規カテゴリ</label>
+          <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+            <input type="color" class="form-input" id="newCategoryColor" value="#3b82f6" style="flex: 0 0 60px; padding: 8px;">
+            <input type="text" class="form-input" id="newCategoryLabel" placeholder="カテゴリ名">
+          </div>
+          <button class="btn-primary" onclick="addCategory()">➕ 追加</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MENU SHEET -->
+  <div class="sheet" id="menuSheet">
+    <div class="sheet-content">
+      <div class="sheet-header">
+        <button class="btn-back" onclick="handleBackButton()">◁ 戻る</button>
+        <div class="sheet-title">メニュー</div>
+        <div style="width: 80px;"></div>
+      </div>
+      <div class="sheet-body">
+        <button class="btn-primary" onclick="exportData()" style="width: 100%; margin-bottom: 8px;">⬇️ エクスポート</button>
+        <button class="btn-secondary" id="importBtn" style="width: 100%; margin-bottom: 8px;">
+          ⬆️ インポート
+          <input type="file" id="fileInput" accept=".json" onchange="importData(event)" style="display: none;">
+        </button>
+        <button class="btn-secondary" onclick="resetData()" style="width: 100%;">🔄 リセット</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div class="toast" id="toast"></div>
 
   <script>
-    // ========== APP VERSION & CONSTANTS ==========
-    const APP_VERSION = "20260705v1.5.0";
-    const STORAGE_KEY = "prompt_drawer_data";
-    const THEME_KEY = "prompt_drawer_theme";
-    const DRAFT_KEY = "prompt_drawer_draft";
-
-    // ========== INDEXEDDB (永続化ストレージ) ==========
-    const IDB_NAME = "PromptDrawerDB";
-    const IDB_VERSION = 1;
-    const IDB_STORE = "kv";
-
-    function idbOpen() {
-      return new Promise((resolve, reject) => {
-        const req = indexedDB.open(IDB_NAME, IDB_VERSION);
-        req.onupgradeneeded = () => {
-          const db = req.result;
-          if (!db.objectStoreNames.contains(IDB_STORE)) {
-            db.createObjectStore(IDB_STORE, { keyPath: "key" });
-          }
-        };
-        req.onsuccess = () => resolve(req.result);
-        req.onerror = () => reject(req.error);
-      });
-    }
-
-    function idbGet(key) {
-      return idbOpen().then(db => new Promise((resolve, reject) => {
-        const tx = db.transaction(IDB_STORE, "readonly");
-        const req = tx.objectStore(IDB_STORE).get(key);
-        req.onsuccess = () => resolve(req.result ? req.result.value : undefined);
-        req.onerror = () => reject(req.error);
-      }));
-    }
-
-    function idbSet(key, value) {
-      return idbOpen().then(db => new Promise((resolve, reject) => {
-        const tx = db.transaction(IDB_STORE, "readwrite");
-        const req = tx.objectStore(IDB_STORE).put({ key, value });
-        req.onsuccess = () => resolve(true);
-        req.onerror = () => reject(req.error);
-      }));
-    }
-
-    // OSにデータを勝手に消さないようリクエスト（Storage Manager API）
-    async function requestPersistentStorage() {
-      try {
-        if (navigator.storage && navigator.storage.persist) {
-          const granted = await navigator.storage.persist();
-          console.log(granted ? "✅ 永続化ストレージ許可" : "⚠️ 永続化は未許可（保存自体は継続動作）");
-        }
-      } catch (err) {
-        console.log("❌ persist()実行エラー:", err);
-      }
-    }
-
-    // Category definitions
-    const CATEGORIES = {
-      business: { label: "ビジネス", code: "BIZ", color: "#3b82f6" },
-      development: { label: "開発", code: "DEV", color: "#10b981" },
-      writing: { label: "文章作成", code: "WRT", color: "#8b5cf6" },
-      learning: { label: "学習", code: "LRN", color: "#f59e0b" },
-      sparring: { label: "壁打ち", code: "TALK", color: "#ef4444" },
-      daily: { label: "日常", code: "LIFE", color: "#06b6d4" },
-    };
-    const CATEGORY_ORDER = ["business", "development", "writing", "learning", "sparring", "daily"];
-
-    // ========== INITIAL DATA ==========
+    // ========== CONSTANTS & SEED ==========
+    const UNCATEGORIZED_ID = "cat_uncategorized";
+    const DRAFT_KEY = "promptDrawerDraft";
     const SEED = [
-      { id: "p1", category: "business", title: "一発OKが出るビジネスメール", summary: "相手・要件・温度感を指定すると、過不足ないメール文面を生成。", body: `あなたは一流の営業アシスタントです。以下の条件で、相手が読んですぐ動けるビジネスメールを作成してください。
-
-# 宛先・関係性：[例：初めて連絡する取引先の部長]
-# 目的：[例：打ち合わせの日程調整]
-# 伝えたい要件（箇条書きOK）：
-- [要件1]
-- [要件2]
-# トーン：[丁寧 / ややカジュアル / 硬め] から選択
-
-# 出力ルール
-- 件名を最初に提示
-- 結論→理由→依頼(具体的なアクション)の順で簡潔に
-- 敬語は自然に、回りくどい表現は使わない
-- 最後に2パターン（丁寧版 / 端的版）を提示` },
-      { id: "p2", category: "business", title: "議事録を3分で整理", summary: "殴り書きメモを、決定事項・ToDo・保留に自動仕分け。", body: `次の会議メモを、後から誰が見ても分かる議事録に整理してください。
-
-# メモ（そのまま貼り付け）：
-"""
-[ここに会議中の走り書きを貼る]
-"""
-
-# 出力フォーマット
-## 決定事項
-- （確定したことだけ）
-## ToDo（担当 / 期限）
-- [ ] 内容 — 担当: / 期限:
-## 保留・要確認
-- （持ち越し論点）
-## 一言サマリー
-- （3行以内で全体像）` },
-      { id: "p3", category: "business", title: "刺さる企画書の骨子", summary: "課題→打ち手→効果の流れで、通る企画の骨組みを作る。", body: `あなたは事業開発のプロです。以下のテーマで、意思決定者が「やろう」と言いたくなる企画書の骨子を作ってください。
-
-# テーマ：[企画名 / 実現したいこと]
-# 想定読者：[承認する人。例：役員]
-# 使える前提・制約：[予算 / 期間 / 人数 など]
-
-# 出力構成
-1. 一言サマリー（この企画は何か / なぜ今か）
-2. 現状の課題（数字や具体で）
-3. 打ち手（何をどうやるか）
-4. 期待できる効果（できれば定量）
-5. 想定リスクと対策
-6. 必要なリソースと大まかなスケジュール
-
-各項目は要点のみ。装飾は不要。` },
-      { id: "p4", category: "development", title: "単一HTMLの神ツールを一発生成", summary: "Vanilla JS完結・localStorage保存・スマホ最適化の単一HTMLを作らせる。", body: `あなたは一流のフロントエンドエンジニアです。以下の仕様で、コピペしてそのまま動く単一HTMLファイルを作ってください。
-
-# 作りたいツール：[例：シンプルな家計簿]
-# 主な機能：
-- [機能1]
-- [機能2]
-
-# 必須要件
-- HTML/CSS/JS をすべて1ファイルに収める（外部ライブラリは原則なし）
-- データは localStorage に自動保存（リロードしても消えない）
-- 画面に「戻る/取り消し」の操作を用意する
-- スマホでの操作性を最優先（タップ領域・視認性）
-- JSONでのエクスポート／インポート機能を付ける
-
-完成コードを省略せず全文で出力してください。` },
-      { id: "p5", category: "writing", title: "バズるX（Twitter）投稿", summary: "テーマから、思わず反応したくなる投稿案を複数生成。", body: `あなたはSNSで数字を出すコピーライターです。次のテーマで、拡散されやすいX投稿を作ってください。
-
-# テーマ / 伝えたいこと：[ここに]
-# 狙う反応：[共感 / 保存 / 議論 / 笑い]
-# 文字数：140字前後
-
-# ルール
-- 最初の1行（フック）で手を止めさせる
-- 具体 → 一般化、または結論 → 理由 の流れ
-- ハッシュタグは付けすぎない
-- トーン違いで3案出す（真面目 / 煽り気味 / 脱力系）` },
-      { id: "p6", category: "learning", title: "難しい概念を中学生にもわかる説明で", summary: "専門用語を、身近な例えと図解ステップでかみ砕く。", body: `次のことを、予備知識ゼロの人にも分かるように説明してください。
-
-# 説明してほしいこと：[概念 / 用語]
-# 相手のレベル：[完全な初心者 想定]
-
-# 説明の順番
-1. 一言でいうと（30字以内）
-2. 身近なたとえ話
-3. どういう仕組みか（ステップで）
-4. なぜ重要か / どこで役立つか
-5. よくある誤解
-
-※専門用語を使うときは必ずその場でかみ砕く。` },
-      { id: "p7", category: "sparring", title: "アイデアの壁打ち相手", summary: "否定せず広げ、良い問いを返してアイデアを育てる。", body: `私のアイデアの壁打ち相手になってください。すぐ結論を出さず、一緒に思考を広げてほしいです。
-
-# 今考えていること：
-[ざっくりでOK。ここに]
-
-# あなたの役割
-- まず面白いと思った点を1つ挙げる
-- そのうえで「視点が広がる質問」を2〜3個返す
-- 私が答えたら、さらに深掘り or 別角度を提示
-- ある程度出そろったら、可能性を整理して次の一歩を提案
-
-※序盤は評価より発散を優先して。` },
-      { id: "p8", category: "daily", title: "冷蔵庫の余り物で献立", summary: "手持ちの食材と気分から、作れる料理を提案。", body: `今ある食材で作れる献立を提案してください。
-
-# ある食材：[例：卵 / キャベツ / 豚こま / 玉ねぎ]
-# 気分・条件：[例：さっと / がっつり / ヘルシー / 15分以内]
-# 苦手なもの：[任意]
-
-# 出力
-- 主菜1つ＋できれば副菜1つ
-- ざっくりの作り方（手順は簡潔に）
-- 足すともっと美味しくなる調味料
-- 余った食材の翌日アレンジ案` },
+      {
+        id: "p_seed_1",
+        category: UNCATEGORIZED_ID,
+        title: "ブレインストーミング",
+        summary: "アイデアを広げる",
+        body: "次のテーマについてのアイデアを自由に列挙してください：\n\n{テーマ}\n\nできるだけ多くのアイデアを提案してください。",
+        isFavorite: false
+      },
+      {
+        id: "p_seed_2",
+        category: UNCATEGORIZED_ID,
+        title: "ドキュメント作成",
+        summary: "わかりやすく説明",
+        body: "次のトピックについて、初心者向けの説明文を作成してください：\n\n{トピック}\n\n図表も必要に応じて説明してください。",
+        isFavorite: false
+      }
     ];
 
-    // ========== STATE ==========
+    // ========== GLOBAL STATE ==========
     let allPrompts = [];
+    let categories = [];
     let currentFilter = "all";
-    let editingPrompt = null;
-    let currentDarkMode = false;
+    let currentEditId = null;
+    let currentEditIsFavorite = false;
+    let draftSaveTimer = null;
+    let modalStack = [];
+    let expandedIds = new Set();
 
-    // ========== INIT ==========
-    document.addEventListener("DOMContentLoaded", async () => {
-      await requestPersistentStorage();
-      await loadData();
-      initTheme();
-      registerServiceWorker();
-      renderFilters();
-      renderPrompts();
-      setupSearch();
-      setupHistoryListener();
-      setupAutoSave();
+    // ========== UTIL ==========
+    function escapeHtml(str) {
+      if (str === null || str === undefined) return "";
+      return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    }
 
-      document.getElementById("searchInput").addEventListener("input", (e) => {
-        const query = e.target.value.trim();
-        if (query) document.getElementById("searchClear").style.display = "block";
-        else document.getElementById("searchClear").style.display = "none";
-        renderPrompts();
-      });
-    });
+    const CATEGORY_DEFAULTS = [
+      { label: "未分類", color: "#94a3b8" }
+    ];
 
-    // ========== DATA MANAGEMENT ==========
-    async function loadData() {
-      let stored;
-      try {
-        stored = await idbGet(STORAGE_KEY);
-      } catch (err) {
-        // 読み込みエラー時は絶対に既存データを上書きしない（ログのみ出力し保護する）
-        console.error("❌ データ読み込みエラー（既存データは保護されます）:", err);
-        allPrompts = [];
-        document.getElementById("promptCount").textContent = "読み込みエラー";
-        showToast("⚠️ データ読み込みに失敗しました。再読み込みしてください");
-        return;
-      }
-
-      if (stored && Array.isArray(stored)) {
-        allPrompts = stored;
-      } else {
-        // IndexedDBが空 → 旧localStorageからの移行を試みる（初回のみ）
-        const legacy = localStorage.getItem(STORAGE_KEY);
-        if (legacy) {
-          try {
-            allPrompts = JSON.parse(legacy);
-            await saveData();
-            console.log("✅ localStorage → IndexedDB へ移行しました");
-          } catch {
-            allPrompts = SEED.map((p, i) => ({ ...p, id: `p${Date.now()}_${i}` }));
-            await saveData();
+    // ========== INIT（Storage Manager API統合済み） ==========
+    async function init() {
+      // ストレージ永続化リクエスト（Storage Manager API）
+      if (navigator.storage && navigator.storage.persist) {
+        try {
+          const isPersistent = await navigator.storage.persist();
+          if (isPersistent) {
+            console.log("✅ ストレージが永続化されました（自動削除なし）");
+          } else {
+            console.log("⚠️ ストレージ永続化がリクエストされました（OSの判断待ち）");
           }
-        } else {
-          allPrompts = SEED.map((p, i) => ({ ...p, id: `p${Date.now()}_${i}` }));
-          await saveData();
+        } catch (e) {
+          console.error("❌ ストレージ永続化リクエスト失敗:", e);
         }
       }
 
-      document.getElementById("promptCount").textContent = `${allPrompts.length} prompts`;
+      try {
+        await loadData();
+        await loadCategories();
+      } catch (e) {
+        console.error("DB initialization failed, falling back to memory-only mode:", e);
+        allPrompts = SEED.map((p, i) => ({ ...p, id: `p${Date.now()}_${i}` }));
+        categories = [{ id: UNCATEGORIZED_ID, label: "未分類", code: "—", color: "#94a3b8" }];
+        setTimeout(() => showToast("⚠️ データ保存が利用できないため一時的な状態で動作します"), 300);
+      }
+      setupSearch();
+      setupHistoryListener();
+      renderFilters();
+      renderPrompts();
+      setupImportButton();
+    }
+
+    // ========== HISTORY MANAGEMENT ==========
+    function pushHistory(type) {
+      modalStack.push(type);
+      window.history.pushState(null, "", "#modal");
+      updateModalVisibility();
+    }
+
+    function popHistory() {
+      if (modalStack.length === 0) return;
+      const poppedType = modalStack.pop();
+      closeModalByType(poppedType);
+      updateModalVisibility();
+    }
+
+    function handleBackButton() {
+      window.history.back();
+    }
+
+    function setupHistoryListener() {
+      window.addEventListener("popstate", () => {
+        if (modalStack.length > 0) {
+          popHistory();
+        }
+      });
+    }
+
+    function closeModalByType(type) {
+      if (type === "edit") {
+        closeEdit();
+      } else if (type === "category") {
+        closeCategoryManage();
+      } else if (type === "menu") {
+        closeMenu();
+      }
+    }
+
+    function updateModalVisibility() {
+      const editSheet = document.getElementById("editSheet");
+      const categorySheet = document.getElementById("categorySheet");
+      const menuSheet = document.getElementById("menuSheet");
+
+      const hasEdit = modalStack.includes("edit");
+      const hasCategory = modalStack.includes("category");
+      const hasMenu = modalStack.includes("menu");
+
+      editSheet.classList.toggle("open", hasEdit);
+      categorySheet.classList.toggle("open", hasCategory);
+      menuSheet.classList.toggle("open", hasMenu);
+
+      if (!hasEdit) {
+        currentEditId = null;
+        currentEditIsFavorite = false;
+      }
+    }
+
+    // ========== DARK MODE ==========
+    function toggleDarkMode() {
+      document.body.classList.toggle("dark-mode");
+      localStorage.setItem("darkMode", document.body.classList.contains("dark-mode"));
+    }
+
+    // ========== INDEXEDDB ==========
+    async function loadData() {
+      const db = await openDB();
+      const prompts = await getAll(db, "prompts");
+      if (!prompts || prompts.length === 0) {
+        allPrompts = SEED.map((p, i) => ({ ...p, id: `p${Date.now()}_${i}` }));
+        await saveData();
+      } else {
+        allPrompts = prompts;
+      }
     }
 
     async function saveData() {
       try {
-        await idbSet(STORAGE_KEY, allPrompts);
-      } catch (err) {
-        console.error("❌ データ保存エラー:", err);
-        showToast("⚠️ 保存に失敗しました（データは変更前の状態のままです）");
+        const db = await openDB();
+        await clearStore(db, "prompts");
+        await addAll(db, "prompts", allPrompts);
+      } catch (e) {
+        console.error("saveData failed:", e);
+        showToast("⚠️ 保存に失敗しました（ブラウザの保存機能が制限されています）");
       }
     }
 
-    function setupAutoSave() {
-      const interval = setInterval(() => {
-        const title = document.getElementById("editTitle")?.value || "";
-        const summary = document.getElementById("editSummary")?.value || "";
-        const body = document.getElementById("editBody")?.value || "";
-        if (title || summary || body) {
-          const draft = { title, summary, body, category: editingPrompt?.category || "business" };
-          localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
-        }
-      }, 1000);
-    }
-
-    // ========== SERVICE WORKER ==========
-    function registerServiceWorker() {
-      if ("serviceWorker" in navigator) {
-        navigator.serviceWorker.register("sw.js", { scope: "/" }).then((reg) => {
-          console.log("✅ Service Worker registered:", reg);
-          reg.addEventListener("updatefound", () => {
-            const newWorker = reg.installing;
-            newWorker.addEventListener("statechange", () => {
-              if (newWorker.state === "activated" && navigator.serviceWorker.controller) {
-                showToast("🔄 新バージョンが利用可能です。リロードします...");
-                setTimeout(() => location.reload(), 1500);
-              }
-            });
-          });
-        }).catch(err => console.log("❌ Service Worker registration failed:", err));
-      }
-
-      // Send version to SW
-      if (navigator.serviceWorker && navigator.serviceWorker.controller) {
-        navigator.serviceWorker.controller.postMessage({ type: "SET_VERSION", version: APP_VERSION });
-      }
-    }
-
-    // ========== THEME ==========
-    function initTheme() {
-      const saved = localStorage.getItem(THEME_KEY);
-      currentDarkMode = saved === "dark";
-      applyTheme();
-    }
-
-    function applyTheme() {
-      const isDark = currentDarkMode;
-      if (isDark) {
-        document.body.classList.add("dark-mode");
-        document.getElementById("darkToggle").classList.add("on");
+    async function loadCategories() {
+      const db = await openDB();
+      let savedCategories = await getAll(db, "categories");
+      if (!savedCategories || savedCategories.length === 0) {
+        categories = [
+          { id: UNCATEGORIZED_ID, label: "未分類", code: "—", color: "#94a3b8" }
+        ];
+        await saveCategories();
       } else {
-        document.body.classList.remove("dark-mode");
-        document.getElementById("darkToggle").classList.remove("on");
+        categories = savedCategories;
       }
-      localStorage.setItem(THEME_KEY, isDark ? "dark" : "light");
     }
 
-    function toggleDarkMode() {
-      currentDarkMode = !currentDarkMode;
-      applyTheme();
+    async function saveCategories() {
+      try {
+        const db = await openDB();
+        await clearStore(db, "categories");
+        await addAll(db, "categories", categories);
+      } catch (e) {
+        console.error("saveCategories failed:", e);
+        showToast("⚠️ カテゴリの保存に失敗しました");
+      }
     }
 
-    // ========== HISTORY & BACK BUTTON ==========
-    function setupHistoryListener() {
-      window.addEventListener("popstate", () => {
-        closeEdit();
-        closeSettings();
-      });
-    }
-
-    function pushHistory() {
-      window.history.pushState(null, "", "#modal");
-    }
-
-    function popHistory() {
-      window.history.back();
-    }
-
-    // ========== RENDER ==========
-    function renderFilters() {
-      const container = document.getElementById("filterContainer");
-      container.innerHTML = "";
-
-      ["all", ...CATEGORY_ORDER].forEach(cat => {
-        const count = cat === "all" ? allPrompts.length : allPrompts.filter(p => p.category === cat).length;
-        const label = cat === "all" ? "すべて" : CATEGORIES[cat].label;
-        const color = cat === "all" ? "inherit" : CATEGORIES[cat].color;
-
-        const chip = document.createElement("button");
-        chip.className = `filter-chip ${currentFilter === cat ? "active" : ""}`;
-        chip.innerHTML = `${cat !== "all" ? `<span class="filter-dot" style="background:${color}"></span>` : ""}${label}<span class="filter-count">${count}</span>`;
-        chip.onclick = () => {
-          currentFilter = cat;
-          renderFilters();
-          renderPrompts();
+    function openDB() {
+      return new Promise((res, rej) => {
+        const req = indexedDB.open("promptDrawerDB", 1);
+        req.onupgradeneeded = (e) => {
+          const db = e.target.result;
+          if (!db.objectStoreNames.contains("prompts")) db.createObjectStore("prompts", { keyPath: "id" });
+          if (!db.objectStoreNames.contains("categories")) db.createObjectStore("categories", { keyPath: "id" });
         };
-        container.appendChild(chip);
+        req.onsuccess = () => res(req.result);
+        req.onerror = () => rej(req.error);
       });
     }
 
-    function renderPrompts() {
-      const container = document.getElementById("content");
-      const query = document.getElementById("searchInput").value.toLowerCase();
-
-      let filtered = allPrompts.filter(p => {
-        const matchCat = currentFilter === "all" || p.category === currentFilter;
-        const matchQuery = !query || p.title.toLowerCase().includes(query) || p.summary.toLowerCase().includes(query) || p.body.toLowerCase().includes(query);
-        return matchCat && matchQuery;
+    function getAll(db, storeName) {
+      return new Promise((res, rej) => {
+        const req = db.transaction(storeName, "readonly").objectStore(storeName).getAll();
+        req.onsuccess = () => res(req.result);
+        req.onerror = () => rej(req.error);
       });
+    }
 
-      if (filtered.length === 0) {
-        container.innerHTML = `
-          <div class="empty-state">
-            <div class="empty-icon">📭</div>
-            <div class="empty-title">見つかりませんでした</div>
-            <div class="empty-text">検索条件を変えるか、新しいプロンプトを追加してください。</div>
-            <button class="btn-empty" onclick="openEdit()">➕ 新規追加</button>
-          </div>
-        `;
-        return;
+    function clearStore(db, storeName) {
+      return new Promise((res, rej) => {
+        const req = db.transaction(storeName, "readwrite").objectStore(storeName).clear();
+        req.onsuccess = () => res();
+        req.onerror = () => rej(req.error);
+      });
+    }
+
+    function addAll(db, storeName, items) {
+      return new Promise((res, rej) => {
+        const trans = db.transaction(storeName, "readwrite");
+        const store = trans.objectStore(storeName);
+        items.forEach(item => store.add(item));
+        trans.oncomplete = () => res();
+        trans.onerror = () => rej(trans.error);
+      });
+    }
+
+    // ========== DRAFT MANAGEMENT ==========
+    function saveDraftFromInputs() {
+      const title = document.getElementById("editTitle").value;
+      const summary = document.getElementById("editSummary").value;
+      const body = document.getElementById("editBody").value;
+      const isFavorite = currentEditIsFavorite;
+      const activeChip = document.querySelector("#editCategoryChips .category-chip.active");
+      const categoryId = activeChip ? activeChip.dataset.categoryId : UNCATEGORIZED_ID;
+
+      const draft = { title, summary, body, isFavorite, categoryId };
+      localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+    }
+
+    function saveDraftFromInputsDebounced() {
+      if (draftSaveTimer !== null) {
+        clearTimeout(draftSaveTimer);
       }
-
-      container.innerHTML = filtered.map(p => `
-        <div class="prompt-card">
-          <div class="card-header" onclick="toggleCard(this)">
-            <div class="card-bar" style="background: ${CATEGORIES[p.category].color}"></div>
-            <div class="card-header-content">
-              <div class="card-info">
-                <div class="card-code" style="color: ${CATEGORIES[p.category].color}">${CATEGORIES[p.category].code}</div>
-                <div class="card-title">${p.title}</div>
-                <div class="card-summary">${p.summary}</div>
-              </div>
-              <div class="card-toggle">▼</div>
-            </div>
-          </div>
-          <div class="card-body">
-            <div class="card-body-content">
-              <pre class="prompt-text">${p.body}</pre>
-              <div class="card-actions">
-                <button class="btn-copy" onclick="copyPrompt('${p.id}', event)">📋 コピー</button>
-                <button class="btn-edit" onclick="openEdit('${p.id}', event)">✏️ 編集</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      `).join("");
+      draftSaveTimer = setTimeout(() => {
+        saveDraftFromInputs();
+        draftSaveTimer = null;
+      }, 300);
     }
 
-    function toggleCard(el) {
-      const card = el.querySelector(".card-toggle");
-      const body = el.nextElementSibling;
-      card.classList.toggle("open");
-      body.classList.toggle("open");
+    function loadDraft() {
+      const draft = localStorage.getItem(DRAFT_KEY);
+      return draft ? JSON.parse(draft) : null;
     }
 
-    // ========== EDIT ==========
-    function openEdit(id, e) {
-      if (e) e.stopPropagation();
-      editingPrompt = id ? allPrompts.find(p => p.id === id) : null;
+    function clearDraft() {
+      localStorage.removeItem(DRAFT_KEY);
+    }
 
-      const sheet = document.getElementById("editSheet");
-      const titleEl = document.getElementById("sheetTitle");
+    // ========== EDIT SHEET ==========
+    function openEdit(id) {
+      currentEditId = id || null;
+      currentEditIsFavorite = false;
+
       const titleInput = document.getElementById("editTitle");
       const summaryInput = document.getElementById("editSummary");
       const bodyInput = document.getElementById("editBody");
       const deleteBtn = document.getElementById("deleteBtn");
 
-      if (editingPrompt) {
-        titleEl.textContent = "プロンプトを編集";
-        titleInput.value = editingPrompt.title;
-        summaryInput.value = editingPrompt.summary;
-        bodyInput.value = editingPrompt.body;
-        deleteBtn.style.display = "block";
+      if (currentEditId) {
+        const prompt = allPrompts.find(p => p.id === currentEditId);
+        if (prompt) {
+          titleInput.value = prompt.title || "";
+          summaryInput.value = prompt.summary || "";
+          bodyInput.value = prompt.body || "";
+          currentEditIsFavorite = prompt.isFavorite || false;
+          deleteBtn.classList.remove("hidden");
+        }
       } else {
-        titleEl.textContent = "新規作成";
-        const draft = JSON.parse(localStorage.getItem(DRAFT_KEY) || '{"title":"","summary":"","body":"","category":"business"}');
-        titleInput.value = draft.title;
-        summaryInput.value = draft.summary;
-        bodyInput.value = draft.body;
-        deleteBtn.style.display = "none";
+        const draft = loadDraft();
+        if (draft) {
+          titleInput.value = draft.title || "";
+          summaryInput.value = draft.summary || "";
+          bodyInput.value = draft.body || "";
+          currentEditIsFavorite = draft.isFavorite || false;
+        } else {
+          titleInput.value = "";
+          summaryInput.value = "";
+          bodyInput.value = "";
+        }
+        deleteBtn.classList.add("hidden");
       }
 
-      renderCategoryChips();
-      sheet.classList.add("open");
-      pushHistory();
+      renderEditCategoryChips();
+      const targetCategoryId = currentEditId 
+        ? (allPrompts.find(p => p.id === currentEditId)?.category || UNCATEGORIZED_ID)
+        : (loadDraft()?.categoryId || UNCATEGORIZED_ID);
+
+      setActiveCategoryChip(targetCategoryId);
+      updateEditFavoriteUI();
+      pushHistory("edit");
     }
 
-    function closeEdit() {
-      document.getElementById("editSheet").classList.remove("open");
-      editingPrompt = null;
-      localStorage.removeItem(DRAFT_KEY);
+    function updateEditFavoriteUI() {
+      const icon = document.getElementById("editFavoriteIcon");
+      const text = document.getElementById("editFavoriteText");
+      
+      if (currentEditIsFavorite) {
+        icon.textContent = "★";
+        icon.style.color = "#f59e0b";
+        text.textContent = "お気に入りに登録済み";
+      } else {
+        icon.textContent = "♡";
+        icon.style.color = "inherit";
+        text.textContent = "お気に入りに追加";
+      }
     }
 
-    function renderCategoryChips() {
-      const container = document.getElementById("categoryChips");
-      const currentCat = editingPrompt?.category || "business";
-      container.innerHTML = CATEGORY_ORDER.map(cat => `
-        <button class="category-chip ${currentCat === cat ? "active" : ""}" style="${currentCat === cat ? `background: ${CATEGORIES[cat].color}; border-color: ${CATEGORIES[cat].color};` : ""}" onclick="selectCategory('${cat}', this)">
-          ${CATEGORIES[cat].label}
-        </button>
+    function toggleEditFavorite() {
+      currentEditIsFavorite = !currentEditIsFavorite;
+      updateEditFavoriteUI();
+      saveDraftFromInputs();
+    }
+
+    function renderEditCategoryChips() {
+      const container = document.getElementById("editCategoryChips");
+      container.innerHTML = categories.map(c => `
+        <div class="category-chip" data-category-id="${c.id}" style="background-color: ${c.color}; cursor: pointer;" onclick="toggleCategoryChip('${c.id}')">
+          ${escapeHtml(c.code)} ${escapeHtml(c.label)}
+        </div>
       `).join("");
+      const defaultChip = container.querySelector(`[data-category-id="${UNCATEGORIZED_ID}"]`);
+      if (defaultChip) defaultChip.classList.add("active");
     }
 
-    function selectCategory(cat, el) {
-      document.querySelectorAll(".category-chip").forEach(chip => {
-        chip.classList.remove("active");
-        chip.style.background = "";
-        chip.style.borderColor = "";
+    function setActiveCategoryChip(categoryId) {
+      const chips = document.querySelectorAll("#editCategoryChips .category-chip");
+      let matched = false;
+      chips.forEach(c => {
+        const isMatch = c.dataset.categoryId === categoryId;
+        c.classList.toggle("active", isMatch);
+        if (isMatch) matched = true;
       });
-      el.classList.add("active");
-      el.style.background = CATEGORIES[cat].color;
-      el.style.borderColor = CATEGORIES[cat].color;
-      if (editingPrompt) editingPrompt.category = cat;
-      else editingPrompt = { category: cat };
+      if (!matched) {
+        const fallback = document.querySelector(`#editCategoryChips [data-category-id="${UNCATEGORIZED_ID}"]`);
+        if (fallback) fallback.classList.add("active");
+      }
+    }
+
+    function toggleCategoryChip(categoryId) {
+      setActiveCategoryChip(categoryId);
+      saveDraftFromInputsDebounced();
     }
 
     async function saveEdit() {
       const title = document.getElementById("editTitle").value.trim();
       const summary = document.getElementById("editSummary").value.trim();
       const body = document.getElementById("editBody").value.trim();
-      const category = document.querySelector(".category-chip.active")?.dataset.category || Object.keys(CATEGORIES)[0];
+      const activeChip = document.querySelector("#editCategoryChips .category-chip.active");
+      const category = activeChip ? activeChip.dataset.categoryId : UNCATEGORIZED_ID;
 
       if (!title || !body) {
         showToast("❌ タイトルと本文は必須です");
         return;
       }
 
-      if (editingPrompt && editingPrompt.id) {
-        const idx = allPrompts.findIndex(p => p.id === editingPrompt.id);
-        allPrompts[idx] = { id: editingPrompt.id, title, summary, body, category };
+      if (currentEditId) {
+        const prompt = allPrompts.find(p => p.id === currentEditId);
+        if (prompt) {
+          prompt.title = title;
+          prompt.summary = summary;
+          prompt.body = body;
+          prompt.category = category;
+          prompt.isFavorite = currentEditIsFavorite;
+        }
       } else {
-        allPrompts.unshift({ id: `p${Date.now()}_${Math.random().toString(36).slice(2,7)}`, title, summary, body, category });
+        const newPrompt = {
+          id: `p${Date.now()}_${Math.random().toString(36).slice(2,7)}`,
+          category,
+          title,
+          summary,
+          body,
+          isFavorite: currentEditIsFavorite
+        };
+        // ========== 修正1: 新規プロンプトを先頭に追加 ==========
+        allPrompts.unshift(newPrompt);
       }
 
+      if (draftSaveTimer !== null) {
+        clearTimeout(draftSaveTimer);
+        draftSaveTimer = null;
+      }
+      
+      document.getElementById("editTitle").value = "";
+      document.getElementById("editSummary").value = "";
+      document.getElementById("editBody").value = "";
+      clearDraft();
+
       await saveData();
-      closeEdit();
       renderFilters();
       renderPrompts();
       showToast("✅ 保存しました");
+      window.history.back();
     }
 
-    async function deleteEdit() {
-      if (!editingPrompt?.id) return;
-      if (!confirm("本当に削除しますか？")) return;
-      allPrompts = allPrompts.filter(p => p.id !== editingPrompt.id);
+    async function deletePrompt() {
+      if (!currentEditId) {
+        showToast("❌ 削除するプロンプトが見つかりません");
+        return;
+      }
+
+      const prompt = allPrompts.find(p => p.id === currentEditId);
+      if (!prompt) {
+        showToast("❌ プロンプトが見つかりません");
+        return;
+      }
+
+      const confirmed = confirm(`「${escapeHtml(prompt.title)}」を削除しますか？\nこの操作は取り消せません。`);
+      if (!confirmed) return;
+
+      allPrompts = allPrompts.filter(p => p.id !== currentEditId);
+
+      if (draftSaveTimer !== null) {
+        clearTimeout(draftSaveTimer);
+        draftSaveTimer = null;
+      }
+
+      document.getElementById("editTitle").value = "";
+      document.getElementById("editSummary").value = "";
+      document.getElementById("editBody").value = "";
+      clearDraft();
+
       await saveData();
-      closeEdit();
       renderFilters();
       renderPrompts();
-      showToast("🗑️ 削除しました");
+      showToast("🗑️ プロンプトを削除しました");
+      window.history.back();
     }
 
-    // ========== COPY ==========
-    function copyPrompt(id, e) {
-      e.stopPropagation();
+    function closeEdit() {
+      if (draftSaveTimer !== null) {
+        clearTimeout(draftSaveTimer);
+        draftSaveTimer = null;
+      }
+      
+      document.getElementById("editTitle").value = "";
+      document.getElementById("editSummary").value = "";
+      document.getElementById("editBody").value = "";
+      
+      currentEditId = null;
+      currentEditIsFavorite = false;
+    }
+
+    // ========== RENDER FILTERS ==========
+    function renderFilters() {
+      const container = document.getElementById("filters");
+      const filterChips = [
+        { id: "all", label: "すべて" },
+        ...categories.map(c => ({ id: c.id, label: c.label }))
+      ];
+
+      container.innerHTML = filterChips.map(f => {
+        const count = f.id === "all" ? allPrompts.length : allPrompts.filter(p => p.category === f.id).length;
+        const cat = categories.find(c => c.id === f.id);
+        const bgColor = f.id === "all" ? "transparent" : cat?.color || "#94a3b8";
+
+        return `
+          <button class="filter-chip ${currentFilter === f.id ? "active" : ""}" onclick="setFilter('${f.id}')">
+            ${f.id !== "all" ? `<div class="filter-dot" style="background-color: ${bgColor}"></div>` : ""}
+            ${escapeHtml(f.label)}
+            <span class="filter-count">${count}</span>
+          </button>
+        `;
+      }).join("");
+    }
+
+    function setFilter(filterId) {
+      currentFilter = filterId;
+      renderFilters();
+      renderPrompts();
+    }
+
+    // ========== RENDER PROMPTS（安定化版） ==========
+    function renderPrompts() {
+      const searchInput = document.getElementById("searchInput").value;
+      document.getElementById("searchClear").style.display = searchInput ? "block" : "none";
+
+      let filtered = allPrompts.slice();
+
+      // フィルタリング
+      if (currentFilter !== "all") {
+        filtered = filtered.filter(p => p.category === currentFilter);
+      }
+
+      // 複数キーワード検索（スペース区切り、AND検索）
+      if (searchInput.trim()) {
+        const keywords = searchInput.trim().split(/\s+/).map(k => k.toLowerCase()).filter(k => k.length > 0);
+        filtered = filtered.filter(p => {
+          const searchText = ((p.title || "") + " " + (p.summary || "") + " " + (p.body || "")).toLowerCase();
+          return keywords.every(keyword => searchText.includes(keyword));
+        });
+      }
+
+      // お気に入り順でソート（安定ソート：同一グループ内は allPrompts の元順序を絶対に維持）
+      filtered.sort((a, b) => {
+        if (a.isFavorite !== b.isFavorite) {
+          return a.isFavorite ? -1 : 1;
+        }
+        // お気に入り状態が同じ場合は、必ず allPrompts 内の元の並び順で比較する
+        return allPrompts.indexOf(a) - allPrompts.indexOf(b);
+      });
+
+      const container = document.getElementById("content");
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-icon">📭</div>
+            <div class="empty-title">プロンプトがありません</div>
+            <div class="empty-text">新しいプロンプトを追加してください</div>
+            <button class="btn-empty" onclick="openEdit()">➕ 新規作成</button>
+          </div>
+        `;
+      } else {
+        container.innerHTML = filtered.map((p) => {
+          const cat = categories.find(c => c.id === p.category);
+          const isOpen = expandedIds.has(p.id);
+          return `
+            <div class="prompt-card ${p.isFavorite ? "is-favorite" : ""}">
+              <div class="card-header" onclick="toggleCardBody('${p.id}')">
+                <div class="card-bar" style="background-color: ${cat?.color || '#94a3b8'};"></div>
+                <div class="card-header-content">
+                  <div class="card-info">
+                    <div class="card-code">${escapeHtml(cat?.code) || "—"}</div>
+                    <div class="card-title">${escapeHtml(p.title)}</div>
+                    <div class="card-summary">${escapeHtml(p.summary)}</div>
+                  </div>
+                  <div class="card-header-actions">
+                    <button class="btn-fav ${p.isFavorite ? "active" : ""}" onclick="toggleFavorite('${p.id}', event)" title="お気に入り">${p.isFavorite ? "★" : "♡"}</button>
+                    <div class="card-toggle ${isOpen ? "open" : ""}">▼</div>
+                  </div>
+                </div>
+              </div>
+              <div class="card-body ${isOpen ? "open" : ""}" id="body_${p.id}">
+                <div class="card-body-content">
+                  <div class="prompt-text">${escapeHtml(p.body)}</div>
+                  <div class="card-actions">
+                    <button class="btn-copy" onclick="copyToClipboard('${p.id}', event)">📋 コピー</button>
+                    <button class="btn-edit" onclick="openEdit('${p.id}')">✏️ 編集</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          `;
+        }).join("");
+      }
+    }
+
+    function toggleCardBody(id) {
+      const body = document.getElementById(`body_${id}`);
+      if (!body) return;
+      const header = body.parentElement.querySelector(".card-header");
+      const toggle = header.querySelector(".card-toggle");
+      const isOpen = body.classList.toggle("open");
+      toggle.classList.toggle("open", isOpen);
+      if (isOpen) {
+        expandedIds.add(id);
+      } else {
+        expandedIds.delete(id);
+      }
+    }
+
+    function copyToClipboard(id, e) {
       const prompt = allPrompts.find(p => p.id === id);
       if (!prompt) return;
-
+      
+      const btn = e.currentTarget;
       navigator.clipboard.writeText(prompt.body).then(() => {
-        const btn = event.target;
-        const text = btn.textContent;
-        btn.textContent = "✅ コピーしました!";
-        btn.classList.add("copied");
+        btn.textContent = "✅ コピーしました";
         setTimeout(() => {
-          btn.textContent = text;
-          btn.classList.remove("copied");
-        }, 1500);
-        showToast("✅ クリップボードにコピーしました");
+          btn.textContent = "📋 コピー";
+        }, 2000);
       }).catch(() => {
         showToast("❌ コピーに失敗しました");
       });
     }
 
-    // ========== SETTINGS ==========
-    function openSettings() {
-      document.getElementById("settingsSheet").classList.add("open");
-      pushHistory();
+    async function toggleFavorite(id, e) {
+      e.stopPropagation();
+      const prompt = allPrompts.find(p => p.id === id);
+      if (prompt) {
+        prompt.isFavorite = !prompt.isFavorite;
+        await saveData();
+        renderPrompts();
+      }
     }
 
-    function closeSettings() {
-      document.getElementById("settingsSheet").classList.remove("open");
+    // ========== MENU ==========
+    function openMenu() {
+      pushHistory("menu");
     }
 
-    function exportData() {
-      const data = JSON.stringify(allPrompts, null, 2);
-      const blob = new Blob([data], { type: "application/json" });
+    function closeMenu() {
+    }
+
+    async function exportData() {
+      const data = {
+        prompts: allPrompts,
+        categories: categories.filter(c => c.id !== UNCATEGORIZED_ID),
+        exportedAt: new Date().toISOString()
+      };
+      const json = JSON.stringify(data, null, 2);
+      const blob = new Blob([json], { type: "application/json" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `prompts_${new Date().toISOString().slice(0, 10)}.json`;
+      a.download = `prompts_${Date.now()}.json`;
       a.click();
       URL.revokeObjectURL(url);
-      showToast("📥 ダウンロードしました");
+      showToast("⬇️ エクスポートしました");
+      window.history.back();
+    }
+
+    function setupImportButton() {
+      const importBtn = document.getElementById("importBtn");
+      if (importBtn) {
+        importBtn.onclick = function() {
+          document.getElementById("fileInput").click();
+        };
+      }
     }
 
     function importData(e) {
-      const file = e.target.files[0];
+      const file = e.target.files?.[0];
       if (!file) return;
+
       const reader = new FileReader();
-      reader.onload = async (ev) => {
+      reader.onload = async (evt) => {
         try {
-          const data = JSON.parse(ev.target.result);
-          if (!Array.isArray(data)) throw new Error();
+          const importedData = JSON.parse(evt.target.result);
+          const importedPrompts = Array.isArray(importedData.prompts) ? importedData.prompts : [];
+          const importedCategories = Array.isArray(importedData.categories) ? importedData.categories : [];
+
+          // 既存カテゴリIDのセットを作成（未分類を含む）
+          const validCategoryIds = new Set(categories.map(c => c.id));
+
+          // インポートするカテゴリを処理
+          importedCategories.forEach(cat => {
+            if (!cat || !cat.id) return;
+            
+            if (!categories.find(c => c.id === cat.id)) {
+              const label = (cat.label && String(cat.label).trim()) || "無題カテゴリ";
+              const newCat = {
+                id: cat.id,
+                label,
+                code: cat.code || extractCategoryCode(label),
+                color: cat.color || "#94a3b8"
+              };
+              categories.push(newCat);
+              validCategoryIds.add(cat.id);
+            } else {
+              validCategoryIds.add(cat.id);
+            }
+          });
+
+          // プロンプトをインポート
           const existingIds = new Set(allPrompts.map(p => p.id));
-          const imported = data.map((p, i) => {
+          const imported = importedPrompts.filter(p => p && typeof p === "object").map((p, i) => {
             let id = p.id;
             if (!id || existingIds.has(id)) {
               id = `p${Date.now()}_${i}_${Math.random().toString(36).slice(2,7)}`;
             }
             existingIds.add(id);
+            
+            const category = (p.category && validCategoryIds.has(p.category)) ? p.category : UNCATEGORIZED_ID;
+            
             return {
               id,
-              category: p.category || "business",
+              category,
               title: p.title || "",
               summary: p.summary || "",
-              body: p.body || ""
+              body: p.body || "",
+              isFavorite: !!p.isFavorite
             };
           });
-          // 既存データは消さず、末尾に追加する（誤って上書き消去するのを防ぐ）
+
           allPrompts = [...allPrompts, ...imported];
           await saveData();
+          await saveCategories();
           renderFilters();
           renderPrompts();
           showToast(`✅ ${imported.length}件を追加しました（既存データは保持）`);
@@ -842,16 +1018,140 @@
         }
       };
       reader.readAsText(file);
-      e.target.value = "";
+      document.getElementById("fileInput").value = "";
     }
 
     async function resetData() {
-      if (!confirm("すべてのプロンプトを削除しますか？")) return;
+      if (!confirm("すべてのプロンプトとカテゴリをリセットして、デフォルトに戻しますか？")) return;
+      
+      // ========== 修正2: プロンプトとカテゴリを完全にリセット ==========
       allPrompts = SEED.map((p, i) => ({ ...p, id: `p${Date.now()}_${i}` }));
+      categories = [{ id: UNCATEGORIZED_ID, label: "未分類", code: "—", color: "#94a3b8" }];
+      
       await saveData();
+      await saveCategories();
+      
+      currentFilter = "all";
       renderFilters();
       renderPrompts();
       showToast("🔄 リセットしました");
+      window.history.back();
+    }
+
+    // ========== CATEGORY MANAGE ==========
+    function openCategoryManage() {
+      renderCategoryManageList();
+      pushHistory("category");
+    }
+
+    function closeCategoryManage() {
+    }
+
+    function renderCategoryManageList() {
+      const container = document.getElementById("categoryManageList");
+      container.innerHTML = categories.map(c => `
+        <div class="category-manage-item">
+          <input type="color" class="category-color-input" value="${escapeHtml(c.color)}" onchange="updateCategoryColor('${c.id}', this.value)" title="色を変更" />
+          <input type="text" class="category-label-input" value="${escapeHtml(c.label)}" onchange="updateCategoryLabel('${c.id}', this.value)" ${c.id === UNCATEGORIZED_ID ? "disabled" : ""} />
+          <input type="text" class="category-label-input" value="${escapeHtml(c.code)}" readonly style="flex: 0 0 60px; text-align: center;" title="自動生成コード" />
+          ${c.id === UNCATEGORIZED_ID
+            ? `<span class="category-protected-badge">保護</span>`
+            : `<button class="btn-category-delete" onclick="deleteCategory('${c.id}')" title="削除">🗑️</button>`}
+        </div>
+      `).join("");
+    }
+
+    async function updateCategoryLabel(id, newLabel) {
+      const cat = categories.find(c => c.id === id);
+      if (!cat) return;
+      const trimmed = newLabel.trim();
+      if (!trimmed) {
+        showToast("❌ カテゴリ名は必須です");
+        renderCategoryManageList();
+        return;
+      }
+      cat.label = trimmed;
+      cat.code = extractCategoryCode(trimmed);
+      await saveCategories();
+      renderFilters();
+      renderPrompts();
+      renderCategoryManageList();
+      showToast("✅ カテゴリ名を更新しました");
+    }
+
+    async function updateCategoryColor(id, newColor) {
+      const cat = categories.find(c => c.id === id);
+      if (!cat) return;
+      cat.color = newColor;
+      await saveCategories();
+      renderFilters();
+      renderPrompts();
+    }
+
+    async function addCategory() {
+      const labelInput = document.getElementById("newCategoryLabel");
+      const colorInput = document.getElementById("newCategoryColor");
+      const label = labelInput.value.trim();
+      if (!label) {
+        showToast("❌ カテゴリ名を入力してください");
+        return;
+      }
+      const id = `cat_${Date.now()}_${Math.random().toString(36).slice(2,6)}`;
+      const code = extractCategoryCode(label);
+      categories.push({ id, label, code, color: colorInput.value });
+      await saveCategories();
+      labelInput.value = "";
+      colorInput.value = "#3b82f6";
+      renderCategoryManageList();
+      renderFilters();
+      showToast("✅ カテゴリを追加しました");
+    }
+
+    async function deleteCategory(id) {
+      if (id === UNCATEGORIZED_ID) return;
+      const cat = categories.find(c => c.id === id);
+      if (!cat) return;
+      if (!confirm(`「${cat.label}」を削除しますか？\nこのカテゴリのプロンプトは「未分類」に移動します。`)) return;
+
+      let movedCount = 0;
+      allPrompts.forEach(p => {
+        if (p.category === id) {
+          p.category = UNCATEGORIZED_ID;
+          movedCount++;
+        }
+      });
+      categories = categories.filter(c => c.id !== id);
+
+      await saveCategories();
+      if (movedCount > 0) await saveData();
+
+      if (currentFilter === id) currentFilter = "all";
+
+      renderCategoryManageList();
+      renderFilters();
+      renderPrompts();
+      showToast(`🗑️ カテゴリを削除しました（${movedCount}件を未分類へ移動）`);
+    }
+
+    // ========== CATEGORY CODE GENERATION ==========
+    function extractCategoryCode(label) {
+      if (!label || label.length === 0) {
+        return "•••";
+      }
+
+      const japaneseRegex = /[\u4E00-\u9FFF\u3040-\u309F\u30A0-\u30FF]/g;
+      const japaneseChars = label.match(japaneseRegex);
+      
+      if (japaneseChars && japaneseChars.length > 0) {
+        return japaneseChars.slice(0, 2).join("");
+      }
+
+      const englishMatch = label.match(/[A-Za-z0-9]+/);
+      if (englishMatch) {
+        return englishMatch[0].substring(0, 3).toUpperCase();
+      }
+
+      return label.substring(0, 2).toUpperCase();
     }
 
     // ========== SEARCH ==========
@@ -874,6 +1174,14 @@
         toast.style.display = "none";
       }, 2000);
     }
+
+    // ========== STARTUP ==========
+    document.addEventListener("DOMContentLoaded", () => {
+      if (localStorage.getItem("darkMode") === "true") {
+        document.body.classList.add("dark-mode");
+      }
+      init();
+    });
   </script>
 </body>
 </html>
