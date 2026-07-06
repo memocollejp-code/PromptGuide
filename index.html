@@ -35,1153 +35,987 @@
     body.dark-mode .header-icon { background: #334155; }
     .header-text { min-width: 0; }
     .header-title { font-size: 14px; font-weight: 800; line-height: 1.2; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .header-subtitle { font-size: 10px; color: #94a3b8; font-family: monospace; margin-top: 2px; }
-    body.dark-mode .header-subtitle { color: #64748b; }
+    .app-version { font-size: 10px; font-weight: 600; color: #94a3b8; margin-left: 4px; }
+    body.dark-mode .app-version { color: #64748b; }
+    .header-subtitle { font-size: 11px; color: #64748b; line-height: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    body.dark-mode .header-subtitle { color: #94a3b8; }
 
-    .header-controls { display: flex; gap: 8px; flex-shrink: 0; }
-    .btn-icon { width: 40px; height: 40px; border: none; background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 20px; border-radius: 8px; transition: background 0.2s; }
-    .btn-icon:hover { background: #e2e8f0; }
-    body.dark-mode .btn-icon:hover { background: #334155; }
+    .header-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+    .header-actions button { width: 32px; height: 32px; border-radius: 8px; border: none; background: #f1f5f9; color: #1e293b; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px; transition: background 0.2s; }
+    .header-actions button:active { background: #e2e8f0; }
+    body.dark-mode .header-actions button { background: #334155; color: #f1f5f9; }
+    body.dark-mode .header-actions button:active { background: #475569; }
 
-    .btn-add { background: #1e293b; color: white; font-weight: 700; font-size: 13px; padding: 0 12px; border-radius: 8px; height: 40px; display: flex; align-items: center; gap: 6px; border: none; cursor: pointer; transition: background 0.2s; }
-    .btn-add:hover { background: #0f172a; }
-    body.dark-mode .btn-add { background: #334155; }
-    body.dark-mode .btn-add:hover { background: #475569; }
+    .main { flex: 1; display: flex; overflow: hidden; }
+    .sidebar { flex-shrink: 0; width: 280px; background: white; border-right: 1px solid #e2e8f0; display: flex; flex-direction: column; overflow-y: auto; }
+    body.dark-mode .sidebar { background: #1e293b; border-right-color: #334155; }
 
-    .search-section { flex-shrink: 0; background: white; border-bottom: 1px solid #e2e8f0; padding: 12px 16px; }
-    body.dark-mode .search-section { background: #1e293b; border-bottom-color: #334155; }
+    .sidebar-search { padding: 12px 16px; border-bottom: 1px solid #e2e8f0; flex-shrink: 0; display: flex; align-items: center; gap: 8px; }
+    body.dark-mode .sidebar-search { border-bottom-color: #334155; }
 
-    .search-box { position: relative; margin-bottom: 12px; }
-    .search-input { width: 100%; padding: 8px 32px 8px 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px; background: #f8fafc; }
-    body.dark-mode .search-input { background: #1e293b; border-color: #334155; color: #f1f5f9; }
-    .search-input::placeholder { color: #94a3b8; }
-    .search-icon { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); font-size: 16px; color: #94a3b8; pointer-events: none; }
-    .search-clear { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #94a3b8; cursor: pointer; padding: 4px; font-size: 16px; }
+    #searchInput { flex: 1; padding: 8px 12px; border-radius: 6px; border: 1px solid #e2e8f0; background: #f8fafc; color: #1e293b; font-size: 14px; }
+    #searchInput::placeholder { color: #94a3b8; }
+    body.dark-mode #searchInput { background: #0f172a; border-color: #334155; color: #f1f5f9; }
+    body.dark-mode #searchInput::placeholder { color: #64748b; }
 
-    .filters { display: flex; gap: 8px; overflow-x: auto; padding-right: 4px; -webkit-overflow-scrolling: touch; scroll-behavior: smooth; }
-    .filters::-webkit-scrollbar { display: none; }
-    .filter-chip { flex-shrink: 0; padding: 6px 12px; border: 1px solid #e2e8f0; border-radius: 16px; background: white; cursor: pointer; font-size: 12px; font-weight: 600; white-space: nowrap; transition: all 0.2s; display: flex; align-items: center; gap: 6px; }
-    .filter-chip:hover { background: #f8fafc; }
-    .filter-chip.active { background: #1e293b; color: white; border-color: #1e293b; }
-    body.dark-mode .filter-chip { background: #1e293b; border-color: #334155; color: #f1f5f9; }
-    body.dark-mode .filter-chip:hover { background: #334155; }
-    body.dark-mode .filter-chip.active { background: #475569; border-color: #475569; }
+    #searchClear { display: none; padding: 0; width: auto; height: auto; background: none; border: none; color: #94a3b8; cursor: pointer; font-size: 18px; flex-shrink: 0; transition: opacity 0.2s; }
+    #searchClear:active { opacity: 0.5; }
+    body.dark-mode #searchClear { color: #64748b; }
+    #searchClear.visible { display: block; }
 
-    .filter-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
-    .filter-count { font-size: 10px; opacity: 0.7; font-family: monospace; }
+    .filter-tabs { display: flex; flex-direction: column; padding: 12px 0; border-bottom: 1px solid #e2e8f0; flex-shrink: 0; max-height: 400px; overflow-y: auto; }
+    body.dark-mode .filter-tabs { border-bottom-color: #334155; }
 
-    .main { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
-    .content { max-width: 600px; margin: 0 auto; padding: 16px; }
+    .filter-tab { padding: 8px 16px; cursor: pointer; font-size: 13px; font-weight: 500; color: #64748b; border-left: 3px solid transparent; transition: all 0.2s; }
+    .filter-tab.active { background: #f0f4f8; color: #1e293b; border-left-color: #3b82f6; }
+    body.dark-mode .filter-tab.active { background: #1e293b; color: #f1f5f9; border-left-color: #3b82f6; }
+    .filter-tab:active { opacity: 0.7; }
+    .filter-count { font-size: 11px; color: #94a3b8; margin-left: 6px; }
 
-    .prompt-card { background: white; border: 1px solid #e2e8f0; border-radius: 12px; margin-bottom: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.05); transition: box-shadow 0.2s; }
-    body.dark-mode .prompt-card { background: #1e293b; border-color: #334155; }
-    .prompt-card:hover { box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
-    .prompt-card.is-favorite { border-color: #f59e0b; box-shadow: 0 0 0 2px #f59e0b20; }
+    .sidebar-footer { padding: 12px 16px; border-top: 1px solid #e2e8f0; flex-shrink: 0; display: flex; gap: 8px; }
+    body.dark-mode .sidebar-footer { border-top-color: #334155; }
 
-    .card-header { display: flex; align-items: stretch; cursor: pointer; user-select: none; }
-    .card-bar { width: 4px; flex-shrink: 0; }
-    .card-header-content { flex: 1; padding: 12px; display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
-    .card-info { flex: 1; min-width: 0; }
-    .card-code { font-size: 10px; font-weight: 900; letter-spacing: 1px; font-family: monospace; line-height: 1; margin-bottom: 4px; }
-    .card-title { font-size: 14px; font-weight: 700; line-height: 1.3; margin-bottom: 4px; }
-    body.dark-mode .card-title { color: #f1f5f9; }
-    .card-summary { font-size: 12px; color: #64748b; line-height: 1.3; white-space: pre-wrap; word-break: break-word; }
-    body.dark-mode .card-summary { color: #94a3b8; }
+    .content { flex: 1; display: flex; flex-direction: column; background: #f1f5f9; overflow: hidden; }
+    body.dark-mode .content { background: #0f172a; }
 
-    .card-header-actions { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
-    .btn-fav { background: none; border: none; font-size: 20px; line-height: 1; cursor: pointer; padding: 4px; color: #cbd5e1; flex-shrink: 0; transition: color 0.2s; }
-    .btn-fav.active { color: #f59e0b; }
-    body.dark-mode .btn-fav { color: #475569; }
-    body.dark-mode .btn-fav.active { color: #fbbf24; }
+    .content-header { padding: 16px; border-bottom: 1px solid #e2e8f0; flex-shrink: 0; }
+    body.dark-mode .content-header { border-bottom-color: #334155; }
 
-    .card-toggle { width: 20px; height: 20px; flex-shrink: 0; margin-top: 2px; color: #94a3b8; transition: transform 0.3s; }
-    .card-toggle.open { transform: rotate(180deg); }
+    .content-actions { display: flex; gap: 8px; margin-bottom: 12px; }
+    .content-actions button { padding: 8px 16px; border-radius: 6px; border: none; background: white; color: #1e293b; cursor: pointer; font-weight: 500; font-size: 13px; transition: all 0.2s; }
+    .content-actions button:active { transform: scale(0.95); }
+    body.dark-mode .content-actions button { background: #334155; color: #f1f5f9; }
 
-    .card-body { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out, opacity 0.3s ease-out; opacity: 0; }
-    .card-body.open { max-height: 800px; opacity: 1; }
+    .content-title { font-size: 16px; font-weight: 700; color: #1e293b; }
+    body.dark-mode .content-title { color: #f1f5f9; }
 
-    .card-body-content { padding: 12px; border-top: 1px solid #e2e8f0; }
-    body.dark-mode .card-body-content { border-top-color: #334155; }
+    .content-body { padding: 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; flex: 1; }
+    .empty-state { text-align: center; padding: 40px 20px; color: #94a3b8; }
+    .empty-icon { font-size: 48px; margin-bottom: 12px; }
+    .empty-title { font-size: 16px; font-weight: 600; margin-bottom: 6px; color: #64748b; }
+    .empty-text { font-size: 13px; }
 
-    .prompt-text { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; font-size: 12px; font-family: monospace; line-height: 1.5; white-space: pre-wrap; word-break: break-word; max-height: 300px; overflow-y: auto; margin-bottom: 12px; }
-    body.dark-mode .prompt-text { background: #0f172a; border-color: #334155; color: #e2e8f0; }
+    .prompt-card { background: white; border-radius: 8px; padding: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); transition: all 0.2s; display: flex; flex-direction: column; gap: 12px; }
+    body.dark-mode .prompt-card { background: #1e293b; box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
+    .prompt-card.is-favorite { border-left: 3px solid #fbbf24; }
+    .prompt-card:active { transform: translateY(2px); box-shadow: 0 1px 2px rgba(0,0,0,0.04); }
 
-    .card-actions { display: flex; gap: 8px; }
-    .btn-copy, .btn-edit { flex: 1; padding: 10px; border: none; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 700; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; }
-    .btn-copy { background: #1e293b; color: white; }
-    .btn-copy:hover { background: #0f172a; }
-    .btn-copy.copied { background: #10b981; }
-    body.dark-mode .btn-copy { background: #334155; }
-    body.dark-mode .btn-copy:hover { background: #475569; }
+    .prompt-header { display: flex; align-items: flex-start; gap: 12px; }
+    .prompt-cat { background: #f0f4f8; color: #1e293b; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; flex-shrink: 0; }
+    body.dark-mode .prompt-cat { background: #334155; color: #f1f5f9; }
 
-    .btn-edit { background: white; border: 1px solid #e2e8f0; color: #475569; }
-    .btn-edit:hover { background: #f8fafc; }
-    body.dark-mode .btn-edit { background: #0f172a; border-color: #334155; color: #cbd5e1; }
-    body.dark-mode .btn-edit:hover { background: #1e293b; }
+    .prompt-title { font-size: 14px; font-weight: 700; color: #1e293b; flex: 1; word-break: break-word; }
+    body.dark-mode .prompt-title { color: #f1f5f9; }
 
-    .empty-state { text-align: center; padding: 40px 20px; }
-    .empty-icon { font-size: 48px; margin-bottom: 12px; opacity: 0.5; }
-    .empty-title { font-size: 16px; font-weight: 700; margin-bottom: 8px; }
-    .empty-text { font-size: 13px; color: #64748b; margin-bottom: 20px; }
-    body.dark-mode .empty-text { color: #94a3b8; }
-    .btn-empty { background: #1e293b; color: white; padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer; font-weight: 700; }
-    body.dark-mode .btn-empty { background: #334155; }
+    .prompt-actions { display: flex; gap: 4px; flex-shrink: 0; }
+    .btn-sm { width: 28px; height: 28px; border-radius: 6px; border: none; background: #f1f5f9; color: #1e293b; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px; transition: all 0.2s; }
+    body.dark-mode .btn-sm { background: #334155; color: #f1f5f9; }
+    .btn-sm:active { background: #e2e8f0; }
+    body.dark-mode .btn-sm:active { background: #475569; }
 
-    .sheet { position: fixed; inset: 0; background: rgba(0,0,0,0.3); z-index: 40; display: none; animation: fadeIn 0.2s ease-out; }
-    .sheet.open { display: flex; }
-    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-    .sheet-content { position: absolute; inset: 0; background: white; display: flex; flex-direction: column; z-index: 41; animation: slideUp 0.25s ease-out; }
-    body.dark-mode .sheet-content { background: #0f172a; }
-    @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+    .btn-fav.active { color: #fbbf24; }
 
-    .sheet-header { flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid #e2e8f0; background: white; }
-    body.dark-mode .sheet-header { background: #1e293b; border-bottom-color: #334155; }
+    .prompt-summary { font-size: 12px; color: #64748b; font-weight: 500; }
+    body.dark-mode .prompt-summary { color: #94a3b8; }
 
-    .btn-back { background: none; border: none; cursor: pointer; padding: 8px; font-size: 16px; color: #475569; font-weight: 600; display: flex; align-items: center; gap: 6px; }
-    body.dark-mode .btn-back { color: #cbd5e1; }
-    .sheet-title { font-size: 14px; font-weight: 700; text-align: center; flex: 1; }
+    /* ✅ 改善1: クラス名を "expanded" に変更し、表示ロジックを正規化 */
+    .prompt-body { display: none; background: #f8fafc; border-radius: 6px; padding: 12px; font-family: "Courier New", monospace; font-size: 12px; color: #334155; white-space: pre-wrap; word-break: break-word; max-height: none; overflow-y: auto; }
+    body.dark-mode .prompt-body { background: #0f172a; color: #cbd5e1; }
 
-    .sheet-body { flex: 1; overflow-y: auto; padding: 16px; }
-    .form-group { margin-bottom: 20px; }
-    .form-label { display: block; font-size: 12px; font-weight: 700; color: #475569; margin-bottom: 8px; }
-    body.dark-mode .form-label { color: #cbd5e1; }
+    .prompt-body.expanded { display: block; }
 
-    .favorite-toggle { display: flex; align-items: center; gap: 8px; padding: 12px; background: #f8fafc; border-radius: 8px; cursor: pointer; user-select: none; margin-bottom: 12px; }
-    body.dark-mode .favorite-toggle { background: #1e293b; border: 1px solid #334155; }
-    .favorite-toggle:hover { background: #f0f3f8; }
-    body.dark-mode .favorite-toggle:hover { background: #334155; }
-    .favorite-icon { font-size: 20px; }
-    .favorite-text { font-size: 13px; font-weight: 600; color: #475569; flex: 1; }
-    body.dark-mode .favorite-text { color: #cbd5e1; }
+    .btn-primary { background: #3b82f6; color: white; padding: 10px 16px; border-radius: 6px; border: none; cursor: pointer; font-weight: 600; font-size: 13px; }
+    .btn-primary:active { background: #2563eb; }
 
-    .category-chips { display: flex; flex-wrap: wrap; gap: 8px; }
-    .category-chip { padding: 8px 12px; border: 1px solid #e2e8f0; border-radius: 16px; background: white; cursor: pointer; font-size: 12px; font-weight: 600; transition: all 0.2s; }
-    .category-chip.active { color: white; border-color: transparent; }
-    body.dark-mode .category-chip { background: #1e293b; border-color: #334155; color: #f1f5f9; }
+    .btn-secondary { background: #e2e8f0; color: #1e293b; padding: 10px 16px; border-radius: 6px; border: none; cursor: pointer; font-weight: 500; font-size: 13px; }
+    .btn-secondary:active { background: #cbd5e1; }
+    body.dark-mode .btn-secondary { background: #334155; color: #f1f5f9; }
+    body.dark-mode .btn-secondary:active { background: #475569; }
 
-    .form-input, .form-textarea { width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px; font-family: monospace; }
-    body.dark-mode .form-input, body.dark-mode .form-textarea { background: #1e293b; border-color: #334155; color: #f1f5f9; }
-    .form-textarea { resize: vertical; min-height: 120px; font-family: monospace; }
+    /* ✅ 改善2: sheet-overlay と sidebar-overlay を分離 */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 40; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+    .modal-overlay.open { opacity: 1; pointer-events: auto; }
 
-    .form-actions { display: flex; gap: 8px; margin-bottom: 12px; }
-    .form-actions-delete { display: flex; gap: 8px; }
-    .btn-primary, .btn-secondary, .btn-delete { flex: 1; padding: 12px; border: none; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.2s; }
-    .btn-primary { background: #1e293b; color: white; }
-    .btn-primary:hover { background: #0f172a; }
-    .btn-secondary { background: white; border: 1px solid #e2e8f0; color: #475569; }
-    .btn-secondary:hover { background: #f8fafc; }
-    .btn-delete { background: #ef4444; color: white; }
-    .btn-delete:hover { background: #dc2626; }
-    .btn-delete.hidden { display: none; }
-    body.dark-mode .btn-primary { background: #334155; }
-    body.dark-mode .btn-primary:hover { background: #475569; }
-    body.dark-mode .btn-secondary { background: #1e293b; border-color: #334155; color: #cbd5e1; }
-    body.dark-mode .btn-secondary:hover { background: #334155; }
-    body.dark-mode .btn-delete { background: #dc2626; }
-    body.dark-mode .btn-delete:hover { background: #b91c1c; }
+    .sidebar-overlay { position: fixed; inset: 0; background: transparent; z-index: 35; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+    .sidebar-overlay.open { opacity: 1; pointer-events: auto; }
 
-    .category-manage-item { display: flex; align-items: center; gap: 12px; padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 12px; }
-    body.dark-mode .category-manage-item { background: #1e293b; border-color: #334155; }
+    .sheet { position: fixed; bottom: 0; left: 0; right: 0; background: white; border-radius: 12px 12px 0 0; z-index: 50; max-height: 90vh; overflow-y: auto; transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+    body.dark-mode .sheet { background: #1e293b; }
+    .sheet.open { transform: translateY(0); }
 
-    .category-color-input { width: 40px; height: 40px; border: 1px solid #e2e8f0; border-radius: 8px; cursor: pointer; flex-shrink: 0; }
-    body.dark-mode .category-color-input { border-color: #334155; }
+    .sheet-header { padding: 20px 16px; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+    body.dark-mode .sheet-header { border-bottom-color: #334155; }
 
-    .category-label-input { flex: 1; padding: 8px 12px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 12px; font-weight: 600; }
-    body.dark-mode .category-label-input { background: #0f172a; border-color: #334155; color: #f1f5f9; }
+    .sheet-title { font-size: 18px; font-weight: 700; color: #1e293b; }
+    body.dark-mode .sheet-title { color: #f1f5f9; }
 
-    .category-label-input:disabled { background: #f8fafc; color: #94a3b8; cursor: not-allowed; }
-    body.dark-mode .category-label-input:disabled { background: #0f172a; color: #64748b; }
+    .btn-close { width: 32px; height: 32px; border-radius: 8px; border: none; background: #f1f5f9; color: #1e293b; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+    body.dark-mode .btn-close { background: #334155; color: #f1f5f9; }
 
-    .btn-category-delete { background: none; border: none; font-size: 18px; cursor: pointer; padding: 4px; flex-shrink: 0; }
+    .sheet-body { padding: 16px; display: flex; flex-direction: column; gap: 12px; }
 
-    .category-protected-badge { font-size: 10px; font-weight: 700; color: #94a3b8; flex-shrink: 0; }
+    .form-input, .form-textarea { width: 100%; padding: 10px 12px; border-radius: 6px; border: 1px solid #e2e8f0; background: white; color: #1e293b; font-size: 14px; font-family: inherit; }
+    .form-input::placeholder, .form-textarea::placeholder { color: #94a3b8; }
+    body.dark-mode .form-input, body.dark-mode .form-textarea { background: #0f172a; border-color: #334155; color: #f1f5f9; }
 
-    .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #1e293b; color: white; padding: 12px 20px; border-radius: 8px; font-size: 13px; font-weight: 600; z-index: 50; display: none; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); animation: slideUpToast 0.2s ease-out; }
-    @keyframes slideUpToast { from { transform: translate(-50%, 100%); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }
-    body.dark-mode .toast { background: #334155; }
+    .toast { position: fixed; bottom: 20px; left: 20px; right: 20px; background: #1e293b; color: white; padding: 12px 16px; border-radius: 8px; font-size: 14px; z-index: 60; opacity: 0; pointer-events: none; transition: opacity 0.2s; max-width: 320px; margin: 0 auto; left: 50%; transform: translateX(-50%); }
+    .toast.show { opacity: 1; pointer-events: auto; }
 
-    .hidden { display: none !important; }
+    #sidebarToggle { display: none; }
+
+    @media (max-width: 600px) {
+      #sidebarToggle { display: flex; }
+      .sidebar { position: fixed; left: 0; top: 0; height: 100vh; z-index: 45; transform: translateX(-100%); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+      .sidebar.open { transform: translateX(0); }
+      .main { position: relative; }
+    }
   </style>
 </head>
 <body>
   <div class="app">
     <div class="header">
       <div class="header-left">
+        <button id="sidebarToggle">☰</button>
         <div class="header-icon">📋</div>
         <div class="header-text">
-          <div class="header-title">プロンプト引き出し</div>
-          <div class="header-subtitle">v2.4.0 FINAL</div>
+          <div class="header-title">プロンプト引き出し <span class="app-version">v1.5.3</span></div>
+          <div class="header-subtitle" id="categoryCount">全0件</div>
         </div>
       </div>
-      <div class="header-controls">
-        <button class="btn-icon" onclick="toggleDarkMode()" title="ダークモード切り替え">🌙</button>
-        <button class="btn-icon" onclick="openCategoryManage()" title="カテゴリ管理">🏷️</button>
-        <button class="btn-icon" onclick="openMenu()" title="メニュー">⚙️</button>
-        <button class="btn-add" onclick="openEdit()">➕ 新規</button>
+      <div class="header-actions">
+        <button id="themeToggle">🌙</button>
+        <button id="menuToggle">⋮</button>
       </div>
-    </div>
-
-    <div class="search-section">
-      <div class="search-box">
-        <input type="text" class="search-input" id="searchInput" placeholder="検索... (スペースで複数キーワード)">
-        <div class="search-icon">🔍</div>
-        <button class="search-clear" id="searchClear" onclick="clearSearch()" style="display:none;">✕</button>
-      </div>
-      <div class="filters" id="filters"></div>
     </div>
 
     <div class="main">
-      <div class="content" id="content"></div>
-    </div>
-  </div>
+      <div class="sidebar">
+        <div class="sidebar-search">
+          <input type="text" id="searchInput" placeholder="検索..." autocomplete="off">
+          <button id="searchClear">✕</button>
+        </div>
 
-  <!-- EDIT SHEET -->
-  <div class="sheet" id="editSheet">
-    <div class="sheet-content">
-      <div class="sheet-header">
-        <button class="btn-back" onclick="handleBackButton()">◁ 戻る</button>
-        <div class="sheet-title">プロンプト</div>
-        <div style="width: 80px;"></div>
+        <div class="filter-tabs" id="filterTabs"></div>
+
+        <div class="sidebar-footer">
+          <button class="btn-primary" style="flex: 1;" id="addPromptBtn">＋ プロンプト</button>
+          <button class="btn-secondary" id="addCategoryBtn">📑</button>
+        </div>
       </div>
-      <div class="sheet-body">
-        <div class="form-group">
-          <label class="form-label">お気に入り</label>
-          <div class="favorite-toggle" id="editFavoriteToggle" onclick="toggleEditFavorite()">
-            <div class="favorite-icon" id="editFavoriteIcon">♡</div>
-            <div class="favorite-text" id="editFavoriteText">お気に入りに追加</div>
+
+      <div class="content">
+        <div class="content-header">
+          <div class="content-actions">
+            <button id="exportBtn">📥 エクスポート</button>
+            <button id="importBtn">📤 インポート</button>
+            <button id="clearBtn">🗑️ 全削除</button>
           </div>
+          <div class="content-title" id="contentTitle">すべて</div>
         </div>
-        <div class="form-group">
-          <label class="form-label">カテゴリ</label>
-          <div class="category-chips" id="editCategoryChips"></div>
-        </div>
-        <div class="form-group">
-          <label class="form-label">タイトル</label>
-          <input type="text" class="form-input" id="editTitle" placeholder="タイトルを入力" oninput="saveDraftFromInputsDebounced()">
-        </div>
-        <div class="form-group">
-          <label class="form-label">概要</label>
-          <textarea class="form-textarea" id="editSummary" placeholder="簡潔に説明（改行可）" oninput="saveDraftFromInputsDebounced()"></textarea>
-        </div>
-        <div class="form-group">
-          <label class="form-label">本文</label>
-          <textarea class="form-textarea" id="editBody" placeholder="プロンプトを入力" oninput="saveDraftFromInputsDebounced()"></textarea>
-        </div>
-        <div class="form-actions">
-          <button class="btn-primary" onclick="saveEdit()">💾 保存</button>
-          <button class="btn-secondary" onclick="handleBackButton()">キャンセル</button>
-        </div>
-        <div class="form-actions-delete">
-          <button id="deleteBtn" class="btn-delete hidden" onclick="deletePrompt()">🗑️ 削除</button>
-        </div>
+
+        <div class="content-body" id="contentBody"></div>
       </div>
     </div>
   </div>
 
-  <!-- CATEGORY MANAGE SHEET -->
-  <div class="sheet" id="categorySheet">
-    <div class="sheet-content">
-      <div class="sheet-header">
-        <button class="btn-back" onclick="handleBackButton()">◁ 戻る</button>
-        <div class="sheet-title">カテゴリ管理</div>
-        <div style="width: 80px;"></div>
+  <!-- Overlays -->
+  <div id="modalOverlay" class="modal-overlay"></div>
+  <div id="sidebarOverlay" class="sidebar-overlay"></div>
+  <input type="file" id="importFile" accept=".json" style="display: none;">
+
+  <!-- Sheets -->
+  <div id="newPromptSheet" class="sheet">
+    <div class="sheet-header">
+      <div class="sheet-title">新規プロンプト</div>
+      <button class="btn-close">✕</button>
+    </div>
+    <div class="sheet-body">
+      <div>
+        <label style="font-size: 12px; font-weight: 600; color: #64748b;">タイトル</label>
+        <input type="text" id="newPromptTitle" class="form-input" placeholder="プロンプトの名前">
       </div>
-      <div class="sheet-body">
-        <div id="categoryManageList"></div>
-        <div class="form-group" style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
-          <label class="form-label">新規カテゴリ</label>
-          <div style="display: flex; gap: 8px; margin-bottom: 12px;">
-            <input type="color" class="form-input" id="newCategoryColor" value="#3b82f6" style="flex: 0 0 60px; padding: 8px;">
-            <input type="text" class="form-input" id="newCategoryLabel" placeholder="カテゴリ名">
-          </div>
-          <button class="btn-primary" onclick="addCategory()">➕ 追加</button>
-        </div>
+      <div>
+        <label style="font-size: 12px; font-weight: 600; color: #64748b;">カテゴリ</label>
+        <select id="newPromptCategory" class="form-input" style="appearance: auto;">
+          <option value="">カテゴリなし</option>
+        </select>
       </div>
+      <div>
+        <label style="font-size: 12px; font-weight: 600; color: #64748b;">プロンプト本文</label>
+        <textarea id="newPromptBody" class="form-textarea" placeholder="プロンプト内容を入力..." rows="8"></textarea>
+      </div>
+      <button class="btn-primary" id="saveNewPromptBtn" style="width: 100%;">保存</button>
     </div>
   </div>
 
-  <!-- MENU SHEET -->
-  <div class="sheet" id="menuSheet">
-    <div class="sheet-content">
-      <div class="sheet-header">
-        <button class="btn-back" onclick="handleBackButton()">◁ 戻る</button>
-        <div class="sheet-title">メニュー</div>
-        <div style="width: 80px;"></div>
+  <div id="editPromptSheet" class="sheet">
+    <div class="sheet-header">
+      <div class="sheet-title">プロンプト編集</div>
+      <button class="btn-close">✕</button>
+    </div>
+    <div class="sheet-body">
+      <div>
+        <label style="font-size: 12px; font-weight: 600; color: #64748b;">タイトル</label>
+        <input type="text" id="editPromptTitle" class="form-input" placeholder="プロンプトの名前">
       </div>
-      <div class="sheet-body">
-        <button class="btn-primary" onclick="exportData()" style="width: 100%; margin-bottom: 8px;">⬇️ エクスポート</button>
-        <button class="btn-secondary" id="importBtn" style="width: 100%; margin-bottom: 8px;">
-          ⬆️ インポート
-          <input type="file" id="fileInput" accept=".json" onchange="importData(event)" style="display: none;">
-        </button>
-        <button class="btn-secondary" onclick="resetData()" style="width: 100%;">🔄 リセット</button>
+      <div>
+        <label style="font-size: 12px; font-weight: 600; color: #64748b;">カテゴリ</label>
+        <select id="editPromptCategory" class="form-input" style="appearance: auto;">
+          <option value="">カテゴリなし</option>
+        </select>
       </div>
+      <div>
+        <label style="font-size: 12px; font-weight: 600; color: #64748b;">プロンプト本文</label>
+        <textarea id="editPromptBody" class="form-textarea" placeholder="プロンプト内容を入力..." rows="8"></textarea>
+      </div>
+      <button class="btn-primary" id="saveEditPromptBtn" style="width: 100%;">保存</button>
+      <button class="btn-secondary" id="deletePromptBtn" style="width: 100%;">削除</button>
     </div>
   </div>
 
-  <!-- TOAST -->
-  <div class="toast" id="toast"></div>
+  <div id="categorySheet" class="sheet">
+    <div class="sheet-header">
+      <div class="sheet-title">カテゴリ管理</div>
+      <button class="btn-close">✕</button>
+    </div>
+    <div class="sheet-body" id="categoryList"></div>
+  </div>
+
+  <div id="newCategorySheet" class="sheet">
+    <div class="sheet-header">
+      <div class="sheet-title">新規カテゴリ</div>
+      <button class="btn-close">✕</button>
+    </div>
+    <div class="sheet-body">
+      <div>
+        <label style="font-size: 12px; font-weight: 600; color: #64748b;">カテゴリ名</label>
+        <input type="text" id="newCategoryLabel" class="form-input" placeholder="例: API関連">
+      </div>
+      <div>
+        <label style="font-size: 12px; font-weight: 600; color: #64748b;">カテゴリコード</label>
+        <input type="text" id="newCategoryCode" class="form-input" placeholder="例: api">
+      </div>
+      <div>
+        <label style="font-size: 12px; font-weight: 600; color: #64748b;">色</label>
+        <input type="color" id="newCategoryColor" class="form-input" value="#3b82f6">
+      </div>
+      <button class="btn-primary" id="saveNewCategoryBtn" style="width: 100%;">作成</button>
+    </div>
+  </div>
+
+  <div id="menuSheet" class="sheet">
+    <div class="sheet-header">
+      <div class="sheet-title">メニュー</div>
+      <button class="btn-close">✕</button>
+    </div>
+    <div class="sheet-body">
+      <button id="importMenuBtn" class="btn-secondary" style="width: 100%; justify-content: flex-start;">📤 インポート</button>
+      <button id="exportMenuBtn" class="btn-secondary" style="width: 100%; justify-content: flex-start;">📥 エクスポート</button>
+      <button id="clearMenuBtn" class="btn-secondary" style="width: 100%; justify-content: flex-start;">🗑️ 全削除</button>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
 
   <script>
-    // ========== CONSTANTS & SEED ==========
-    const UNCATEGORIZED_ID = "cat_uncategorized";
-    const DRAFT_KEY = "promptDrawerDraft";
-    const SEED = [
-      {
-        id: "p_seed_1",
-        category: UNCATEGORIZED_ID,
-        title: "ブレインストーミング",
-        summary: "アイデアを広げる",
-        body: "次のテーマについてのアイデアを自由に列挙してください：\n\n{テーマ}\n\nできるだけ多くのアイデアを提案してください。",
-        isFavorite: false
-      },
-      {
-        id: "p_seed_2",
-        category: UNCATEGORIZED_ID,
-        title: "ドキュメント作成",
-        summary: "わかりやすく説明",
-        body: "次のトピックについて、初心者向けの説明文を作成してください：\n\n{トピック}\n\n図表も必要に応じて説明してください。",
-        isFavorite: false
-      }
-    ];
-
-    // ========== GLOBAL STATE ==========
     let allPrompts = [];
     let categories = [];
-    let currentFilter = "all";
-    let currentEditId = null;
-    let currentEditIsFavorite = false;
-    let draftSaveTimer = null;
-    let modalStack = [];
-    let expandedIds = new Set();
+    let filteredPrompts = [];
+    let currentFilter = 'all';
+    let editingId = null;
 
-    // ========== UTIL ==========
-    function escapeHtml(str) {
-      if (str === null || str === undefined) return "";
-      return String(str)
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#39;");
-    }
-
-    const CATEGORY_DEFAULTS = [
-      { label: "未分類", color: "#94a3b8" }
-    ];
-
-    // ========== INIT（Storage Manager API統合済み） ==========
     async function init() {
-      // ストレージ永続化リクエスト（Storage Manager API）
-      if (navigator.storage && navigator.storage.persist) {
-        try {
-          const isPersistent = await navigator.storage.persist();
-          if (isPersistent) {
-            console.log("✅ ストレージが永続化されました（自動削除なし）");
-          } else {
-            console.log("⚠️ ストレージ永続化がリクエストされました（OSの判断待ち）");
-          }
-        } catch (e) {
-          console.error("❌ ストレージ永続化リクエスト失敗:", e);
-        }
-      }
-
-      try {
-        await loadData();
-        await loadCategories();
-      } catch (e) {
-        console.error("DB initialization failed, falling back to memory-only mode:", e);
-        allPrompts = SEED.map((p, i) => ({ ...p, id: `p${Date.now()}_${i}` }));
-        categories = [{ id: UNCATEGORIZED_ID, label: "未分類", code: "—", color: "#94a3b8" }];
-        setTimeout(() => showToast("⚠️ データ保存が利用できないため一時的な状態で動作します"), 300);
-      }
-      setupSearch();
-      setupHistoryListener();
-      renderFilters();
-      renderPrompts();
-      setupImportButton();
+      await loadData();
+      await loadCategories();
+      initializeTheme();
+      renderUI();
+      attachEventListeners();
     }
 
-    // ========== HISTORY MANAGEMENT ==========
-    function pushHistory(type) {
-      modalStack.push(type);
-      window.history.pushState(null, "", "#modal");
-      updateModalVisibility();
-    }
-
-    function popHistory() {
-      if (modalStack.length === 0) return;
-      const poppedType = modalStack.pop();
-      closeModalByType(poppedType);
-      updateModalVisibility();
-    }
-
-    function handleBackButton() {
-      window.history.back();
-    }
-
-    function setupHistoryListener() {
-      window.addEventListener("popstate", () => {
-        if (modalStack.length > 0) {
-          popHistory();
-        }
-      });
-    }
-
-    function closeModalByType(type) {
-      if (type === "edit") {
-        closeEdit();
-      } else if (type === "category") {
-        closeCategoryManage();
-      } else if (type === "menu") {
-        closeMenu();
-      }
-    }
-
-    function updateModalVisibility() {
-      const editSheet = document.getElementById("editSheet");
-      const categorySheet = document.getElementById("categorySheet");
-      const menuSheet = document.getElementById("menuSheet");
-
-      const hasEdit = modalStack.includes("edit");
-      const hasCategory = modalStack.includes("category");
-      const hasMenu = modalStack.includes("menu");
-
-      editSheet.classList.toggle("open", hasEdit);
-      categorySheet.classList.toggle("open", hasCategory);
-      menuSheet.classList.toggle("open", hasMenu);
-
-      if (!hasEdit) {
-        currentEditId = null;
-        currentEditIsFavorite = false;
-      }
-    }
-
-    // ========== DARK MODE ==========
-    function toggleDarkMode() {
-      document.body.classList.toggle("dark-mode");
-      localStorage.setItem("darkMode", document.body.classList.contains("dark-mode"));
-    }
-
-    // ========== INDEXEDDB ==========
     async function loadData() {
-      const db = await openDB();
-      const prompts = await getAll(db, "prompts");
-      if (!prompts || prompts.length === 0) {
-        allPrompts = SEED.map((p, i) => ({ ...p, id: `p${Date.now()}_${i}` }));
-        await saveData();
-      } else {
-        allPrompts = prompts;
+      try {
+        const stored = localStorage.getItem('promptDrawerData');
+        allPrompts = stored ? JSON.parse(stored) : [];
+      } catch (e) {
+        console.error("データロードエラー:", e);
+        allPrompts = [];
+      }
+    }
+
+    async function loadCategories() {
+      try {
+        const stored = localStorage.getItem('promptDrawerCategories');
+        categories = stored ? JSON.parse(stored) : [];
+      } catch (e) {
+        console.error("カテゴリロードエラー:", e);
+        categories = [];
       }
     }
 
     async function saveData() {
       try {
-        const db = await openDB();
-        await clearStore(db, "prompts");
-        await addAll(db, "prompts", allPrompts);
+        localStorage.setItem('promptDrawerData', JSON.stringify(allPrompts));
       } catch (e) {
-        console.error("saveData failed:", e);
-        showToast("⚠️ 保存に失敗しました（ブラウザの保存機能が制限されています）");
-      }
-    }
-
-    async function loadCategories() {
-      const db = await openDB();
-      let savedCategories = await getAll(db, "categories");
-      if (!savedCategories || savedCategories.length === 0) {
-        categories = [
-          { id: UNCATEGORIZED_ID, label: "未分類", code: "—", color: "#94a3b8" }
-        ];
-        await saveCategories();
-      } else {
-        categories = savedCategories;
+        console.error("セーブエラー:", e);
+        showToast("💾 データ保存に失敗しました");
       }
     }
 
     async function saveCategories() {
       try {
-        const db = await openDB();
-        await clearStore(db, "categories");
-        await addAll(db, "categories", categories);
+        localStorage.setItem('promptDrawerCategories', JSON.stringify(categories));
       } catch (e) {
-        console.error("saveCategories failed:", e);
-        showToast("⚠️ カテゴリの保存に失敗しました");
+        console.error("カテゴリセーブエラー:", e);
+        // ✅ 修正9: ユーザーに通知
+        showToast("💾 カテゴリ保存に失敗しました");
       }
     }
 
-    function openDB() {
-      return new Promise((res, rej) => {
-        const req = indexedDB.open("promptDrawerDB", 1);
-        req.onupgradeneeded = (e) => {
-          const db = e.target.result;
-          if (!db.objectStoreNames.contains("prompts")) db.createObjectStore("prompts", { keyPath: "id" });
-          if (!db.objectStoreNames.contains("categories")) db.createObjectStore("categories", { keyPath: "id" });
-        };
-        req.onsuccess = () => res(req.result);
-        req.onerror = () => rej(req.error);
+    function renderUI() {
+      renderFilterTabs();
+      renderPromptCards();
+      updateCategoryCount();
+      // ✅ 修正8: カテゴリ変更時にフォーム select を更新
+      updateCategoryOptions();
+    }
+
+    function renderFilterTabs() {
+      const container = document.getElementById('filterTabs');
+      container.innerHTML = '';
+
+      const allCount = allPrompts.length;
+      const favCount = allPrompts.filter(p => p.isFavorite).length;
+
+      const allTab = document.createElement('div');
+      allTab.className = `filter-tab ${currentFilter === 'all' ? 'active' : ''}`;
+      allTab.innerHTML = `すべて <span class="filter-count">${allCount}</span>`;
+      allTab.onclick = () => { currentFilter = 'all'; renderUI(); closeSidebarOnMobile(); };
+      container.appendChild(allTab);
+
+      const favTab = document.createElement('div');
+      favTab.className = `filter-tab ${currentFilter === 'favorites' ? 'active' : ''}`;
+      favTab.innerHTML = `⭐ お気に入り <span class="filter-count">${favCount}</span>`;
+      favTab.onclick = () => { currentFilter = 'favorites'; renderUI(); closeSidebarOnMobile(); };
+      container.appendChild(favTab);
+
+      categories.forEach(cat => {
+        const catCount = allPrompts.filter(p => p.category === cat.code).length;
+        const tab = document.createElement('div');
+        tab.className = `filter-tab ${currentFilter === cat.code ? 'active' : ''}`;
+        tab.innerHTML = `<span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: ${cat.color}; margin-right: 6px;"></span>${cat.label} <span class="filter-count">${catCount}</span>`;
+        tab.onclick = () => { currentFilter = cat.code; renderUI(); closeSidebarOnMobile(); };
+        container.appendChild(tab);
       });
     }
 
-    function getAll(db, storeName) {
-      return new Promise((res, rej) => {
-        const req = db.transaction(storeName, "readonly").objectStore(storeName).getAll();
-        req.onsuccess = () => res(req.result);
-        req.onerror = () => rej(req.error);
-      });
-    }
+    function renderPromptCards() {
+      const container = document.getElementById('contentBody');
+      container.innerHTML = '';
 
-    function clearStore(db, storeName) {
-      return new Promise((res, rej) => {
-        const req = db.transaction(storeName, "readwrite").objectStore(storeName).clear();
-        req.onsuccess = () => res();
-        req.onerror = () => rej(req.error);
-      });
-    }
+      // ✅ 修正1: 検索入力値を取得
+      const searchValue = document.getElementById('searchInput').value.trim();
 
-    function addAll(db, storeName, items) {
-      return new Promise((res, rej) => {
-        const trans = db.transaction(storeName, "readwrite");
-        const store = trans.objectStore(storeName);
-        items.forEach(item => store.add(item));
-        trans.oncomplete = () => res();
-        trans.onerror = () => rej(trans.error);
-      });
-    }
-
-    // ========== DRAFT MANAGEMENT ==========
-    function saveDraftFromInputs() {
-      const title = document.getElementById("editTitle").value;
-      const summary = document.getElementById("editSummary").value;
-      const body = document.getElementById("editBody").value;
-      const isFavorite = currentEditIsFavorite;
-      const activeChip = document.querySelector("#editCategoryChips .category-chip.active");
-      const categoryId = activeChip ? activeChip.dataset.categoryId : UNCATEGORIZED_ID;
-
-      const draft = { title, summary, body, isFavorite, categoryId };
-      localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
-    }
-
-    function saveDraftFromInputsDebounced() {
-      if (draftSaveTimer !== null) {
-        clearTimeout(draftSaveTimer);
-      }
-      draftSaveTimer = setTimeout(() => {
-        saveDraftFromInputs();
-        draftSaveTimer = null;
-      }, 300);
-    }
-
-    function loadDraft() {
-      const draft = localStorage.getItem(DRAFT_KEY);
-      return draft ? JSON.parse(draft) : null;
-    }
-
-    function clearDraft() {
-      localStorage.removeItem(DRAFT_KEY);
-    }
-
-    // ========== EDIT SHEET ==========
-    function openEdit(id) {
-      currentEditId = id || null;
-      currentEditIsFavorite = false;
-
-      const titleInput = document.getElementById("editTitle");
-      const summaryInput = document.getElementById("editSummary");
-      const bodyInput = document.getElementById("editBody");
-      const deleteBtn = document.getElementById("deleteBtn");
-
-      if (currentEditId) {
-        const prompt = allPrompts.find(p => p.id === currentEditId);
-        if (prompt) {
-          titleInput.value = prompt.title || "";
-          summaryInput.value = prompt.summary || "";
-          bodyInput.value = prompt.body || "";
-          currentEditIsFavorite = prompt.isFavorite || false;
-          deleteBtn.classList.remove("hidden");
-        }
+      if (currentFilter === 'all') {
+        filteredPrompts = allPrompts;
+        document.getElementById('contentTitle').textContent = 'すべて';
+      } else if (currentFilter === 'favorites') {
+        filteredPrompts = allPrompts.filter(p => p.isFavorite);
+        document.getElementById('contentTitle').textContent = '⭐ お気に入り';
       } else {
-        const draft = loadDraft();
-        if (draft) {
-          titleInput.value = draft.title || "";
-          summaryInput.value = draft.summary || "";
-          bodyInput.value = draft.body || "";
-          currentEditIsFavorite = draft.isFavorite || false;
-        } else {
-          titleInput.value = "";
-          summaryInput.value = "";
-          bodyInput.value = "";
-        }
-        deleteBtn.classList.add("hidden");
+        const cat = categories.find(c => c.code === currentFilter);
+        filteredPrompts = allPrompts.filter(p => p.category === currentFilter);
+        document.getElementById('contentTitle').textContent = cat ? cat.label : 'カテゴリ';
       }
 
-      renderEditCategoryChips();
-      const targetCategoryId = currentEditId 
-        ? (allPrompts.find(p => p.id === currentEditId)?.category || UNCATEGORIZED_ID)
-        : (loadDraft()?.categoryId || UNCATEGORIZED_ID);
-
-      setActiveCategoryChip(targetCategoryId);
-      updateEditFavoriteUI();
-      pushHistory("edit");
-    }
-
-    function updateEditFavoriteUI() {
-      const icon = document.getElementById("editFavoriteIcon");
-      const text = document.getElementById("editFavoriteText");
-      
-      if (currentEditIsFavorite) {
-        icon.textContent = "★";
-        icon.style.color = "#f59e0b";
-        text.textContent = "お気に入りに登録済み";
-      } else {
-        icon.textContent = "♡";
-        icon.style.color = "inherit";
-        text.textContent = "お気に入りに追加";
+      // ✅ 修正1: 検索キーワードでさらにフィルタリング
+      if (searchValue.length > 0) {
+        const searchLower = searchValue.toLowerCase();
+        filteredPrompts = filteredPrompts.filter(p =>
+          p.title.toLowerCase().includes(searchLower) ||
+          p.body.toLowerCase().includes(searchLower)
+        );
       }
-    }
 
-    function toggleEditFavorite() {
-      currentEditIsFavorite = !currentEditIsFavorite;
-      updateEditFavoriteUI();
-      saveDraftFromInputs();
-    }
-
-    function renderEditCategoryChips() {
-      const container = document.getElementById("editCategoryChips");
-      container.innerHTML = categories.map(c => `
-        <div class="category-chip" data-category-id="${c.id}" style="background-color: ${c.color}; cursor: pointer;" onclick="toggleCategoryChip('${c.id}')">
-          ${escapeHtml(c.code)} ${escapeHtml(c.label)}
-        </div>
-      `).join("");
-      const defaultChip = container.querySelector(`[data-category-id="${UNCATEGORIZED_ID}"]`);
-      if (defaultChip) defaultChip.classList.add("active");
-    }
-
-    function setActiveCategoryChip(categoryId) {
-      const chips = document.querySelectorAll("#editCategoryChips .category-chip");
-      let matched = false;
-      chips.forEach(c => {
-        const isMatch = c.dataset.categoryId === categoryId;
-        c.classList.toggle("active", isMatch);
-        if (isMatch) matched = true;
-      });
-      if (!matched) {
-        const fallback = document.querySelector(`#editCategoryChips [data-category-id="${UNCATEGORIZED_ID}"]`);
-        if (fallback) fallback.classList.add("active");
-      }
-    }
-
-    function toggleCategoryChip(categoryId) {
-      setActiveCategoryChip(categoryId);
-      saveDraftFromInputsDebounced();
-    }
-
-    async function saveEdit() {
-      const title = document.getElementById("editTitle").value.trim();
-      const summary = document.getElementById("editSummary").value.trim();
-      const body = document.getElementById("editBody").value.trim();
-      const activeChip = document.querySelector("#editCategoryChips .category-chip.active");
-      const category = activeChip ? activeChip.dataset.categoryId : UNCATEGORIZED_ID;
-
-      if (!title || !body) {
-        showToast("❌ タイトルと本文は必須です");
+      if (filteredPrompts.length === 0) {
+        container.innerHTML = '<div class="empty-state"><div class="empty-icon">📭</div><div class="empty-title">プロンプトがありません</div><div class="empty-text">新しいプロンプトを追加してください</div></div>';
         return;
       }
 
-      if (currentEditId) {
-        const prompt = allPrompts.find(p => p.id === currentEditId);
-        if (prompt) {
-          prompt.title = title;
-          prompt.summary = summary;
-          prompt.body = body;
-          prompt.category = category;
-          prompt.isFavorite = currentEditIsFavorite;
+      filteredPrompts.forEach(prompt => {
+        const card = document.createElement('div');
+        card.className = `prompt-card ${prompt.isFavorite ? 'is-favorite' : ''}`;
+        const cat = categories.find(c => c.code === prompt.category);
+        
+        // ✅ 修正5: カテゴリバッジを安全に作成
+        let catBadge = '';
+        if (cat) {
+          const catSpan = document.createElement('span');
+          catSpan.className = 'prompt-cat';
+          catSpan.style.background = `${cat.color}30`;
+          catSpan.style.color = cat.color;
+          catSpan.textContent = cat.label;  // ✅ HTML エスケープされる
+          catBadge = catSpan.outerHTML;
         }
-      } else {
-        const newPrompt = {
-          id: `p${Date.now()}_${Math.random().toString(36).slice(2,7)}`,
-          category,
-          title,
-          summary,
-          body,
-          isFavorite: currentEditIsFavorite
-        };
-        // ========== 修正1: 新規プロンプトを先頭に追加 ==========
-        allPrompts.unshift(newPrompt);
-      }
-
-      if (draftSaveTimer !== null) {
-        clearTimeout(draftSaveTimer);
-        draftSaveTimer = null;
-      }
-      
-      document.getElementById("editTitle").value = "";
-      document.getElementById("editSummary").value = "";
-      document.getElementById("editBody").value = "";
-      clearDraft();
-
-      await saveData();
-      renderFilters();
-      renderPrompts();
-      showToast("✅ 保存しました");
-      window.history.back();
-    }
-
-    async function deletePrompt() {
-      if (!currentEditId) {
-        showToast("❌ 削除するプロンプトが見つかりません");
-        return;
-      }
-
-      const prompt = allPrompts.find(p => p.id === currentEditId);
-      if (!prompt) {
-        showToast("❌ プロンプトが見つかりません");
-        return;
-      }
-
-      const confirmed = confirm(`「${escapeHtml(prompt.title)}」を削除しますか？\nこの操作は取り消せません。`);
-      if (!confirmed) return;
-
-      allPrompts = allPrompts.filter(p => p.id !== currentEditId);
-
-      if (draftSaveTimer !== null) {
-        clearTimeout(draftSaveTimer);
-        draftSaveTimer = null;
-      }
-
-      document.getElementById("editTitle").value = "";
-      document.getElementById("editSummary").value = "";
-      document.getElementById("editBody").value = "";
-      clearDraft();
-
-      await saveData();
-      renderFilters();
-      renderPrompts();
-      showToast("🗑️ プロンプトを削除しました");
-      window.history.back();
-    }
-
-    function closeEdit() {
-      if (draftSaveTimer !== null) {
-        clearTimeout(draftSaveTimer);
-        draftSaveTimer = null;
-      }
-      
-      document.getElementById("editTitle").value = "";
-      document.getElementById("editSummary").value = "";
-      document.getElementById("editBody").value = "";
-      
-      currentEditId = null;
-      currentEditIsFavorite = false;
-    }
-
-    // ========== RENDER FILTERS ==========
-    function renderFilters() {
-      const container = document.getElementById("filters");
-      const filterChips = [
-        { id: "all", label: "すべて" },
-        ...categories.map(c => ({ id: c.id, label: c.label }))
-      ];
-
-      container.innerHTML = filterChips.map(f => {
-        const count = f.id === "all" ? allPrompts.length : allPrompts.filter(p => p.category === f.id).length;
-        const cat = categories.find(c => c.id === f.id);
-        const bgColor = f.id === "all" ? "transparent" : cat?.color || "#94a3b8";
-
-        return `
-          <button class="filter-chip ${currentFilter === f.id ? "active" : ""}" onclick="setFilter('${f.id}')">
-            ${f.id !== "all" ? `<div class="filter-dot" style="background-color: ${bgColor}"></div>` : ""}
-            ${escapeHtml(f.label)}
-            <span class="filter-count">${count}</span>
-          </button>
-        `;
-      }).join("");
-    }
-
-    function setFilter(filterId) {
-      currentFilter = filterId;
-      renderFilters();
-      renderPrompts();
-    }
-
-    // ========== RENDER PROMPTS（安定化版） ==========
-    function renderPrompts() {
-      const searchInput = document.getElementById("searchInput").value;
-      document.getElementById("searchClear").style.display = searchInput ? "block" : "none";
-
-      let filtered = allPrompts.slice();
-
-      // フィルタリング
-      if (currentFilter !== "all") {
-        filtered = filtered.filter(p => p.category === currentFilter);
-      }
-
-      // 複数キーワード検索（スペース区切り、AND検索）
-      if (searchInput.trim()) {
-        const keywords = searchInput.trim().split(/\s+/).map(k => k.toLowerCase()).filter(k => k.length > 0);
-        filtered = filtered.filter(p => {
-          const searchText = ((p.title || "") + " " + (p.summary || "") + " " + (p.body || "")).toLowerCase();
-          return keywords.every(keyword => searchText.includes(keyword));
-        });
-      }
-
-      // お気に入り順でソート（安定ソート：同一グループ内は allPrompts の元順序を絶対に維持）
-      filtered.sort((a, b) => {
-        if (a.isFavorite !== b.isFavorite) {
-          return a.isFavorite ? -1 : 1;
-        }
-        // お気に入り状態が同じ場合は、必ず allPrompts 内の元の並び順で比較する
-        return allPrompts.indexOf(a) - allPrompts.indexOf(b);
-      });
-
-      const container = document.getElementById("content");
-      if (filtered.length === 0) {
-        container.innerHTML = `
-          <div class="empty-state">
-            <div class="empty-icon">📭</div>
-            <div class="empty-title">プロンプトがありません</div>
-            <div class="empty-text">新しいプロンプトを追加してください</div>
-            <button class="btn-empty" onclick="openEdit()">➕ 新規作成</button>
-          </div>
-        `;
-      } else {
-        container.innerHTML = filtered.map((p) => {
-          const cat = categories.find(c => c.id === p.category);
-          const isOpen = expandedIds.has(p.id);
-          return `
-            <div class="prompt-card ${p.isFavorite ? "is-favorite" : ""}">
-              <div class="card-header" onclick="toggleCardBody('${p.id}')">
-                <div class="card-bar" style="background-color: ${cat?.color || '#94a3b8'};"></div>
-                <div class="card-header-content">
-                  <div class="card-info">
-                    <div class="card-code">${escapeHtml(cat?.code) || "—"}</div>
-                    <div class="card-title">${escapeHtml(p.title)}</div>
-                    <div class="card-summary">${escapeHtml(p.summary)}</div>
-                  </div>
-                  <div class="card-header-actions">
-                    <button class="btn-fav ${p.isFavorite ? "active" : ""}" onclick="toggleFavorite('${p.id}', event)" title="お気に入り">${p.isFavorite ? "★" : "♡"}</button>
-                    <div class="card-toggle ${isOpen ? "open" : ""}">▼</div>
-                  </div>
-                </div>
-              </div>
-              <div class="card-body ${isOpen ? "open" : ""}" id="body_${p.id}">
-                <div class="card-body-content">
-                  <div class="prompt-text">${escapeHtml(p.body)}</div>
-                  <div class="card-actions">
-                    <button class="btn-copy" onclick="copyToClipboard('${p.id}', event)">📋 コピー</button>
-                    <button class="btn-edit" onclick="openEdit('${p.id}')">✏️ 編集</button>
-                  </div>
-                </div>
-              </div>
+        
+        card.innerHTML = `
+          <div class="prompt-header">
+            ${catBadge}
+            <div class="prompt-title"></div>
+            <div class="prompt-actions">
+              <button class="btn-sm btn-fav ${prompt.isFavorite ? 'active' : ''}" data-id="${prompt.id}">⭐</button>
+              <button class="btn-sm btn-copy" data-id="${prompt.id}">📋</button>
+              <button class="btn-sm btn-edit" data-id="${prompt.id}">✏️</button>
             </div>
-          `;
-        }).join("");
-      }
-    }
+          </div>
+          <div class="prompt-summary"></div>
+          <div class="prompt-body"></div>
+        `;
+        
+        // ✅ 修正5: textContent で安全に内容を設定
+        card.querySelector('.prompt-title').textContent = prompt.title;
+        card.querySelector('.prompt-summary').textContent = 
+          prompt.body.substring(0, 100) + (prompt.body.length > 100 ? '...' : '');
+        card.querySelector('.prompt-body').textContent = prompt.body;  // ✅ pre-wrap で表示される
+        
+        // ✅ 修正6: onclick 属性ではなく addEventListener を使用
+        const favBtn = card.querySelector('.btn-fav');
+        favBtn.onclick = (e) => { e.stopPropagation(); toggleFavorite(prompt.id); };
 
-    function toggleCardBody(id) {
-      const body = document.getElementById(`body_${id}`);
-      if (!body) return;
-      const header = body.parentElement.querySelector(".card-header");
-      const toggle = header.querySelector(".card-toggle");
-      const isOpen = body.classList.toggle("open");
-      toggle.classList.toggle("open", isOpen);
-      if (isOpen) {
-        expandedIds.add(id);
-      } else {
-        expandedIds.delete(id);
-      }
-    }
+        const copyBtn = card.querySelector('.btn-copy');
+        copyBtn.onclick = (e) => { e.stopPropagation(); copyToClipboard(prompt.id); };
 
-    function copyToClipboard(id, e) {
-      const prompt = allPrompts.find(p => p.id === id);
-      if (!prompt) return;
-      
-      const btn = e.currentTarget;
-      navigator.clipboard.writeText(prompt.body).then(() => {
-        btn.textContent = "✅ コピーしました";
-        setTimeout(() => {
-          btn.textContent = "📋 コピー";
-        }, 2000);
-      }).catch(() => {
-        showToast("❌ コピーに失敗しました");
+        const editBtn = card.querySelector('.btn-edit');
+        editBtn.onclick = (e) => { e.stopPropagation(); openEditPrompt(prompt.id); };
+
+        const summary = card.querySelector('.prompt-summary');
+        const body = card.querySelector('.prompt-body');
+        summary.onclick = () => { body.classList.toggle('expanded'); };
+
+        container.appendChild(card);
       });
     }
 
-    async function toggleFavorite(id, e) {
-      e.stopPropagation();
+    function updateCategoryCount() {
+      document.getElementById('categoryCount').textContent = `全${allPrompts.length}件`;
+    }
+
+    // ✅ 修正2: categorySheet の内容を動的に生成
+    function renderCategoryList() {
+      const container = document.getElementById('categoryList');
+      container.innerHTML = '';
+
+      if (categories.length === 0) {
+        container.innerHTML = '<div class="empty-state" style="padding: 20px;"><div class="empty-text">カテゴリはまだありません</div></div>';
+        return;
+      }
+
+      categories.forEach((cat, index) => {
+        const catCount = allPrompts.filter(p => p.category === cat.code).length;
+        const item = document.createElement('div');
+        item.style.cssText = 'display: flex; align-items: center; gap: 12px; padding: 12px; border: 1px solid #e2e8f0; border-radius: 6px; margin-bottom: 8px;';
+        
+        item.innerHTML = `
+          <div style="width: 24px; height: 24px; border-radius: 50%; background: ${cat.color}; flex-shrink: 0;"></div>
+          <div style="flex: 1;">
+            <div style="font-weight: 600; color: #1e293b;">${cat.label}</div>
+            <div style="font-size: 12px; color: #94a3b8;">${cat.code} • ${catCount}件</div>
+          </div>
+          <button class="btn-sm" data-cat-id="${cat.id}">🗑️</button>
+        `;
+
+        const deleteBtn = item.querySelector('.btn-sm');
+        deleteBtn.onclick = async () => {
+          if (confirm(`「${cat.label}」を削除しますか？\n※カテゴリのプロンプトはカテゴリなしになります`)) {
+            categories = categories.filter(c => c.id !== cat.id);
+            allPrompts.forEach(p => {
+              if (p.category === cat.code) p.category = '';
+            });
+            await saveCategories();
+            await saveData();
+            renderCategoryList();
+            updateCategoryOptions();
+            renderUI();
+            showToast('✅ カテゴリを削除しました');
+          }
+        };
+
+        container.appendChild(item);
+      });
+
+      const addBtn = document.createElement('button');
+      addBtn.className = 'btn-primary';
+      addBtn.style.width = '100%';
+      addBtn.textContent = '➕ 新規カテゴリ';
+      addBtn.onclick = () => {
+        pushHistory('newCategory');
+      };
+      container.appendChild(addBtn);
+    }
+
+    function toggleFavorite(id) {
       const prompt = allPrompts.find(p => p.id === id);
       if (prompt) {
         prompt.isFavorite = !prompt.isFavorite;
-        await saveData();
-        renderPrompts();
+        saveData();
+        renderUI();
       }
     }
 
-    // ========== MENU ==========
-    function openMenu() {
-      pushHistory("menu");
+    function copyToClipboard(id) {
+      const prompt = allPrompts.find(p => p.id === id);
+      if (prompt) {
+        navigator.clipboard.writeText(prompt.body).then(() => {
+          showToast('✅ コピーしました');
+        }).catch(() => {
+          showToast('⚠️ コピーに失敗しました');
+        });
+      }
     }
 
-    function closeMenu() {
+    function openEditPrompt(id) {
+      editingId = id;
+      const prompt = allPrompts.find(p => p.id === id);
+      if (prompt) {
+        document.getElementById('editPromptTitle').value = prompt.title;
+        document.getElementById('editPromptCategory').value = prompt.category;
+        document.getElementById('editPromptBody').value = prompt.body;
+        pushHistory('editPrompt');
+      }
     }
 
-    async function exportData() {
-      const data = {
-        prompts: allPrompts,
-        categories: categories.filter(c => c.id !== UNCATEGORIZED_ID),
-        exportedAt: new Date().toISOString()
+    function attachEventListeners() {
+      document.getElementById('sidebarToggle').onclick = toggleSidebar;
+      document.getElementById('addPromptBtn').onclick = () => pushHistory('newPrompt');
+      document.getElementById('addCategoryBtn').onclick = () => pushHistory('category');
+      document.getElementById('menuToggle').onclick = () => pushHistory('menu');
+      document.getElementById('themeToggle').onclick = toggleTheme;
+
+      // ✅ 修正7: IME入力中の検索実行を防止
+      let isComposing = false;
+      
+      document.getElementById('searchInput').addEventListener('compositionstart', () => {
+        isComposing = true;
+      });
+      
+      document.getElementById('searchInput').addEventListener('compositionend', () => {
+        isComposing = false;
+        // 確定後に検索を実行
+        const event = new Event('input');
+        document.getElementById('searchInput').dispatchEvent(event);
+      });
+
+      document.getElementById('searchInput').addEventListener('input', (e) => {
+        // ✅ 修正7: IME 確定中は検索しない
+        if (isComposing) return;
+        
+        const value = e.target.value.trim();
+        const clearBtn = document.getElementById('searchClear');
+
+        // クリアボタンの表示/非表示を切り替え
+        if (value.length > 0) {
+          clearBtn.classList.add('visible');
+        } else {
+          clearBtn.classList.remove('visible');
+        }
+
+        // 検索フィルタリング
+        if (value.length === 0) {
+          filteredPrompts = allPrompts.filter(p => {
+            if (currentFilter === 'all') return true;
+            if (currentFilter === 'favorites') return p.isFavorite;
+            return p.category === currentFilter;
+          });
+        } else {
+          const searchLower = value.toLowerCase();
+          filteredPrompts = allPrompts.filter(p => {
+            const matchesFilter = currentFilter === 'all' || 
+                                  (currentFilter === 'favorites' && p.isFavorite) ||
+                                  p.category === currentFilter;
+            const matchesSearch = p.title.toLowerCase().includes(searchLower) || 
+                                 p.body.toLowerCase().includes(searchLower);
+            return matchesFilter && matchesSearch;
+          });
+        }
+        renderPromptCards();
+      });
+
+      // クリアボタンのクリック処理
+      document.getElementById('searchClear').onclick = () => {
+        document.getElementById('searchInput').value = '';
+        document.getElementById('searchInput').dispatchEvent(new Event('input'));
       };
+
+      document.getElementById('saveNewPromptBtn').onclick = async () => {
+        const title = document.getElementById('newPromptTitle').value.trim();
+        const category = document.getElementById('newPromptCategory').value;
+        const body = document.getElementById('newPromptBody').value.trim();
+
+        if (!title || !body) {
+          showToast('⚠️ タイトルと本文を入力してください');
+          return;
+        }
+
+        allPrompts.push({
+          id: Date.now().toString(),
+          title,
+          category,
+          body,
+          isFavorite: false
+        });
+
+        await saveData();
+        renderUI();
+        closeAllSheets();
+        showToast('✅ プロンプトを追加しました');
+      };
+
+      document.getElementById('saveEditPromptBtn').onclick = async () => {
+        // ✅ 修正4: editingId の安全性チェック
+        if (!editingId) {
+          showToast('⚠️ プロンプトが選択されていません');
+          return;
+        }
+
+        const title = document.getElementById('editPromptTitle').value.trim();
+        const category = document.getElementById('editPromptCategory').value;
+        const body = document.getElementById('editPromptBody').value.trim();
+
+        if (!title || !body) {
+          showToast('⚠️ タイトルと本文を入力してください');
+          return;
+        }
+
+        const prompt = allPrompts.find(p => p.id === editingId);
+        if (prompt) {
+          prompt.title = title;
+          prompt.category = category;
+          prompt.body = body;
+          await saveData();
+          renderUI();
+          closeAllSheets();
+          showToast('✅ プロンプトを更新しました');
+        }
+      };
+
+      document.getElementById('deletePromptBtn').onclick = async () => {
+        // ✅ 修正4: editingId の安全性チェック
+        if (!editingId) {
+          showToast('⚠️ プロンプトが選択されていません');
+          return;
+        }
+        
+        if (confirm('本当に削除しますか？')) {
+          allPrompts = allPrompts.filter(p => p.id !== editingId);
+          await saveData();
+          renderUI();
+          closeAllSheets();
+          showToast('✅ プロンプトを削除しました');
+        }
+      };
+
+      document.getElementById('saveNewCategoryBtn').onclick = async () => {
+        const label = document.getElementById('newCategoryLabel').value.trim();
+        const code = document.getElementById('newCategoryCode').value.trim();
+        const color = document.getElementById('newCategoryColor').value;
+
+        if (!label || !code) {
+          showToast('⚠️ カテゴリ名とコードを入力してください');
+          return;
+        }
+
+        if (categories.some(c => c.code === code)) {
+          showToast('⚠️ このコードはすでに使用されています');
+          return;
+        }
+
+        categories.push({
+          id: Date.now().toString(),
+          label,
+          code,
+          color
+        });
+
+        await saveCategories();
+        renderUI();
+        updateCategoryOptions();
+        closeAllSheets();
+        showToast('✅ カテゴリを作成しました');
+      };
+
+      // ✅ 改善3: インポート検証ロジックを明確化
+      document.getElementById('importBtn').onclick = () => document.getElementById('importFile').click();
+      document.getElementById('importMenuBtn').onclick = () => {
+        document.getElementById('importFile').click();
+        closeAllSheets();
+      };
+
+      document.getElementById('importFile').addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = async (event) => {
+          try {
+            const data = JSON.parse(event.target.result);
+
+            // 空の配列の場合はチェックをスキップするが、意図を明確化
+            const hasPrompts = Array.isArray(data.prompts) && data.prompts.length > 0;
+            const hasCategories = Array.isArray(data.categories) && data.categories.length > 0;
+
+            // プロンプトのバリデーション（存在する場合のみ）
+            if (hasPrompts && !validatePrompts(data.prompts)) {
+              showToast("⚠️ プロンプトの形式が無効です。インポートを中止しました");
+              document.getElementById('importFile').value = '';
+              return;
+            }
+
+            // カテゴリのバリデーション（存在する場合のみ）
+            if (hasCategories && !validateCategories(data.categories)) {
+              showToast("⚠️ カテゴリの形式が無効です。インポートを中止しました");
+              document.getElementById('importFile').value = '';
+              return;
+            }
+
+            // カテゴリの一貫性チェック
+            const validCategoryCodes = new Set((data.categories || []).map(c => c.code));
+            (data.prompts || []).forEach(p => {
+              if (p.category && !validCategoryCodes.has(p.category)) {
+                p.category = '';
+              }
+            });
+
+            allPrompts = data.prompts || [];
+            categories = data.categories || [];
+            await saveData();
+            await saveCategories();
+            renderUI();
+            updateCategoryOptions();
+            showToast("✅ インポートしました");
+          } catch (e) {
+            console.error("インポートエラー:", e);
+            showToast("⚠️ インポートに失敗しました");
+          }
+        };
+        reader.readAsText(file);
+        document.getElementById('importFile').value = '';
+      });
+
+      document.getElementById('exportBtn').onclick = exportData;
+      document.getElementById('exportMenuBtn').onclick = () => {
+        exportData();
+        closeAllSheets();
+      };
+
+      document.getElementById('clearBtn').onclick = clearAllData;
+      document.getElementById('clearMenuBtn').onclick = () => {
+        clearAllData();
+        closeAllSheets();
+      };
+
+      // Sheet クローズボタン
+      document.querySelectorAll('.btn-close').forEach(btn => {
+        btn.onclick = closeAllSheets;
+      });
+
+      // Overlay クローズ
+      document.getElementById('modalOverlay').onclick = closeAllSheets;
+      document.getElementById('sidebarOverlay').onclick = closeSidebarOnMobile;
+
+      // キーボード処理
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') closeAllSheets();
+      });
+    }
+
+    function updateCategoryOptions() {
+      const selects = [document.getElementById('newPromptCategory'), document.getElementById('editPromptCategory')];
+      selects.forEach(select => {
+        const currentValue = select.value;
+        select.innerHTML = '<option value="">カテゴリなし</option>';
+        categories.forEach(cat => {
+          const option = document.createElement('option');
+          option.value = cat.code;
+          option.textContent = cat.label;
+          select.appendChild(option);
+        });
+        select.value = currentValue;
+      });
+    }
+
+    function validatePrompts(prompts) {
+      return Array.isArray(prompts) && prompts.every(p =>
+        typeof p === 'object' &&
+        p !== null &&
+        typeof p.id === 'string' &&
+        typeof p.title === 'string' &&
+        typeof p.category === 'string' &&
+        typeof p.body === 'string' &&
+        typeof p.isFavorite === 'boolean'
+      );
+    }
+
+    function validateCategories(categories) {
+      const colorRegex = /^#[0-9a-fA-F]{6}$/;
+      return Array.isArray(categories) && categories.every(c =>
+        typeof c === 'object' &&
+        c !== null &&
+        typeof c.id === 'string' &&
+        typeof c.label === 'string' &&
+        typeof c.code === 'string' &&
+        typeof c.color === 'string' &&
+        colorRegex.test(c.color)
+      );
+    }
+
+    function exportData() {
+      const data = { prompts: allPrompts, categories };
       const json = JSON.stringify(data, null, 2);
-      const blob = new Blob([json], { type: "application/json" });
+      const blob = new Blob([json], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
+      const a = document.createElement('a');
       a.href = url;
-      a.download = `prompts_${Date.now()}.json`;
+      a.download = `prompts_${new Date().toISOString().split('T')[0]}.json`;
       a.click();
       URL.revokeObjectURL(url);
-      showToast("⬇️ エクスポートしました");
-      window.history.back();
+      showToast('✅ エクスポートしました');
     }
 
-    function setupImportButton() {
-      const importBtn = document.getElementById("importBtn");
-      if (importBtn) {
-        importBtn.onclick = function() {
-          document.getElementById("fileInput").click();
-        };
+    function clearAllData() {
+      if (confirm('本当にすべて削除しますか？この操作は取り消せません。')) {
+        allPrompts = [];
+        categories = [];
+        currentFilter = 'all';
+        saveData();
+        saveCategories();
+        renderUI();
+        showToast('✅ すべて削除しました');
       }
     }
 
-    function importData(e) {
-      const file = e.target.files?.[0];
-      if (!file) return;
-
-      const reader = new FileReader();
-      reader.onload = async (evt) => {
-        try {
-          const importedData = JSON.parse(evt.target.result);
-          const importedPrompts = Array.isArray(importedData.prompts) ? importedData.prompts : [];
-          const importedCategories = Array.isArray(importedData.categories) ? importedData.categories : [];
-
-          // 既存カテゴリIDのセットを作成（未分類を含む）
-          const validCategoryIds = new Set(categories.map(c => c.id));
-
-          // インポートするカテゴリを処理
-          importedCategories.forEach(cat => {
-            if (!cat || !cat.id) return;
-            
-            if (!categories.find(c => c.id === cat.id)) {
-              const label = (cat.label && String(cat.label).trim()) || "無題カテゴリ";
-              const newCat = {
-                id: cat.id,
-                label,
-                code: cat.code || extractCategoryCode(label),
-                color: cat.color || "#94a3b8"
-              };
-              categories.push(newCat);
-              validCategoryIds.add(cat.id);
-            } else {
-              validCategoryIds.add(cat.id);
-            }
-          });
-
-          // プロンプトをインポート
-          const existingIds = new Set(allPrompts.map(p => p.id));
-          const imported = importedPrompts.filter(p => p && typeof p === "object").map((p, i) => {
-            let id = p.id;
-            if (!id || existingIds.has(id)) {
-              id = `p${Date.now()}_${i}_${Math.random().toString(36).slice(2,7)}`;
-            }
-            existingIds.add(id);
-            
-            const category = (p.category && validCategoryIds.has(p.category)) ? p.category : UNCATEGORIZED_ID;
-            
-            return {
-              id,
-              category,
-              title: p.title || "",
-              summary: p.summary || "",
-              body: p.body || "",
-              isFavorite: !!p.isFavorite
-            };
-          });
-
-          allPrompts = [...allPrompts, ...imported];
-          await saveData();
-          await saveCategories();
-          renderFilters();
-          renderPrompts();
-          showToast(`✅ ${imported.length}件を追加しました（既存データは保持）`);
-        } catch {
-          showToast("❌ インポートに失敗しました");
-        }
-      };
-      reader.readAsText(file);
-      document.getElementById("fileInput").value = "";
+    function toggleTheme() {
+      document.body.classList.toggle('dark-mode');
+      document.getElementById('themeToggle').textContent = document.body.classList.contains('dark-mode') ? '☀️' : '🌙';
+      localStorage.setItem('promptDrawerTheme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
     }
 
-    async function resetData() {
-      if (!confirm("すべてのプロンプトとカテゴリをリセットして、デフォルトに戻しますか？")) return;
-      
-      // ========== 修正2: プロンプトとカテゴリを完全にリセット ==========
-      allPrompts = SEED.map((p, i) => ({ ...p, id: `p${Date.now()}_${i}` }));
-      categories = [{ id: UNCATEGORIZED_ID, label: "未分類", code: "—", color: "#94a3b8" }];
-      
-      await saveData();
-      await saveCategories();
-      
-      currentFilter = "all";
-      renderFilters();
-      renderPrompts();
-      showToast("🔄 リセットしました");
-      window.history.back();
-    }
-
-    // ========== CATEGORY MANAGE ==========
-    function openCategoryManage() {
-      renderCategoryManageList();
-      pushHistory("category");
-    }
-
-    function closeCategoryManage() {
-    }
-
-    function renderCategoryManageList() {
-      const container = document.getElementById("categoryManageList");
-      container.innerHTML = categories.map(c => `
-        <div class="category-manage-item">
-          <input type="color" class="category-color-input" value="${escapeHtml(c.color)}" onchange="updateCategoryColor('${c.id}', this.value)" title="色を変更" />
-          <input type="text" class="category-label-input" value="${escapeHtml(c.label)}" onchange="updateCategoryLabel('${c.id}', this.value)" ${c.id === UNCATEGORIZED_ID ? "disabled" : ""} />
-          <input type="text" class="category-label-input" value="${escapeHtml(c.code)}" readonly style="flex: 0 0 60px; text-align: center;" title="自動生成コード" />
-          ${c.id === UNCATEGORIZED_ID
-            ? `<span class="category-protected-badge">保護</span>`
-            : `<button class="btn-category-delete" onclick="deleteCategory('${c.id}')" title="削除">🗑️</button>`}
-        </div>
-      `).join("");
-    }
-
-    async function updateCategoryLabel(id, newLabel) {
-      const cat = categories.find(c => c.id === id);
-      if (!cat) return;
-      const trimmed = newLabel.trim();
-      if (!trimmed) {
-        showToast("❌ カテゴリ名は必須です");
-        renderCategoryManageList();
-        return;
+    function initializeTheme() {
+      const theme = localStorage.getItem('promptDrawerTheme') || 'light';
+      if (theme === 'dark') {
+        document.body.classList.add('dark-mode');
+        document.getElementById('themeToggle').textContent = '☀️';
       }
-      cat.label = trimmed;
-      cat.code = extractCategoryCode(trimmed);
-      await saveCategories();
-      renderFilters();
-      renderPrompts();
-      renderCategoryManageList();
-      showToast("✅ カテゴリ名を更新しました");
     }
 
-    async function updateCategoryColor(id, newColor) {
-      const cat = categories.find(c => c.id === id);
-      if (!cat) return;
-      cat.color = newColor;
-      await saveCategories();
-      renderFilters();
-      renderPrompts();
-    }
+    let toastTimeoutId = null;
 
-    async function addCategory() {
-      const labelInput = document.getElementById("newCategoryLabel");
-      const colorInput = document.getElementById("newCategoryColor");
-      const label = labelInput.value.trim();
-      if (!label) {
-        showToast("❌ カテゴリ名を入力してください");
-        return;
-      }
-      const id = `cat_${Date.now()}_${Math.random().toString(36).slice(2,6)}`;
-      const code = extractCategoryCode(label);
-      categories.push({ id, label, code, color: colorInput.value });
-      await saveCategories();
-      labelInput.value = "";
-      colorInput.value = "#3b82f6";
-      renderCategoryManageList();
-      renderFilters();
-      showToast("✅ カテゴリを追加しました");
-    }
-
-    async function deleteCategory(id) {
-      if (id === UNCATEGORIZED_ID) return;
-      const cat = categories.find(c => c.id === id);
-      if (!cat) return;
-      if (!confirm(`「${cat.label}」を削除しますか？\nこのカテゴリのプロンプトは「未分類」に移動します。`)) return;
-
-      let movedCount = 0;
-      allPrompts.forEach(p => {
-        if (p.category === id) {
-          p.category = UNCATEGORIZED_ID;
-          movedCount++;
-        }
-      });
-      categories = categories.filter(c => c.id !== id);
-
-      await saveCategories();
-      if (movedCount > 0) await saveData();
-
-      if (currentFilter === id) currentFilter = "all";
-
-      renderCategoryManageList();
-      renderFilters();
-      renderPrompts();
-      showToast(`🗑️ カテゴリを削除しました（${movedCount}件を未分類へ移動）`);
-    }
-
-    // ========== CATEGORY CODE GENERATION ==========
-    function extractCategoryCode(label) {
-      if (!label || label.length === 0) {
-        return "•••";
-      }
-
-      const japaneseRegex = /[\u4E00-\u9FFF\u3040-\u309F\u30A0-\u30FF]/g;
-      const japaneseChars = label.match(japaneseRegex);
-      
-      if (japaneseChars && japaneseChars.length > 0) {
-        return japaneseChars.slice(0, 2).join("");
-      }
-
-      const englishMatch = label.match(/[A-Za-z0-9]+/);
-      if (englishMatch) {
-        return englishMatch[0].substring(0, 3).toUpperCase();
-      }
-
-      return label.substring(0, 2).toUpperCase();
-    }
-
-    // ========== SEARCH ==========
-    function setupSearch() {
-      document.getElementById("searchInput").addEventListener("input", renderPrompts);
-    }
-
-    function clearSearch() {
-      document.getElementById("searchInput").value = "";
-      document.getElementById("searchClear").style.display = "none";
-      renderPrompts();
-    }
-
-    // ========== TOAST ==========
-    function showToast(msg) {
+    function showToast(message) {
       const toast = document.getElementById("toast");
-      toast.textContent = msg;
-      toast.style.display = "flex";
-      setTimeout(() => {
-        toast.style.display = "none";
+      if (toastTimeoutId) {
+        clearTimeout(toastTimeoutId);
+      }
+      toast.textContent = message;
+      toast.classList.add("show");
+      toastTimeoutId = setTimeout(() => {
+        toast.classList.remove("show");
+        toastTimeoutId = null;
       }, 2000);
     }
 
-    // ========== STARTUP ==========
-    document.addEventListener("DOMContentLoaded", () => {
-      if (localStorage.getItem("darkMode") === "true") {
-        document.body.classList.add("dark-mode");
+    const historyStack = [];
+
+    function pushHistory(state) {
+      historyStack.push(state);
+      updateModalVisibility();
+    }
+
+    function updateModalVisibility() {
+      const modalOverlay = document.getElementById('modalOverlay');
+      const sidebarOverlay = document.getElementById('sidebarOverlay');
+      const sheets = document.querySelectorAll('.sheet');
+
+      sheets.forEach(sheet => sheet.classList.remove('open'));
+      modalOverlay.classList.remove('open');
+
+      const state = historyStack[historyStack.length - 1];
+
+      if (state === 'newPrompt') {
+        document.getElementById('newPromptSheet').classList.add('open');
+        modalOverlay.classList.add('open');
+      } else if (state === 'editPrompt') {
+        document.getElementById('editPromptSheet').classList.add('open');
+        modalOverlay.classList.add('open');
+      } else if (state === 'category') {
+        // ✅ 修正2: categorySheet を開く時に renderCategoryList を呼び出す
+        renderCategoryList();
+        document.getElementById('categorySheet').classList.add('open');
+        modalOverlay.classList.add('open');
+      } else if (state === 'newCategory') {
+        document.getElementById('newCategorySheet').classList.add('open');
+        modalOverlay.classList.add('open');
+      } else if (state === 'menu') {
+        document.getElementById('menuSheet').classList.add('open');
+        modalOverlay.classList.add('open');
       }
+
+      closeSidebarOnMobile();
+    }
+
+    function closeAllSheets() {
+      historyStack.length = 0;
+      document.querySelectorAll('.sheet').forEach(sheet => sheet.classList.remove('open'));
+      document.getElementById('modalOverlay').classList.remove('open');
+      
+      // ✅ 修正3: フォーム入力値をリセット
+      document.getElementById('newPromptTitle').value = '';
+      document.getElementById('newPromptCategory').value = '';
+      document.getElementById('newPromptBody').value = '';
+      
+      document.getElementById('editPromptTitle').value = '';
+      document.getElementById('editPromptCategory').value = '';
+      document.getElementById('editPromptBody').value = '';
+      
+      document.getElementById('newCategoryLabel').value = '';
+      document.getElementById('newCategoryCode').value = '';
+      document.getElementById('newCategoryColor').value = '#3b82f6';
+      
+      // ✅ 修正4: editingId をリセット
+      editingId = null;
+    }
+
+    function closeSidebarAndSheets() {
+      const sidebar = document.querySelector('.sidebar');
+      sidebar.classList.remove('open');
+      closeAllSheets();
+    }
+
+    function closeSidebarOnMobile() {
+      if (window.innerWidth <= 600) {
+        const sidebar = document.querySelector('.sidebar');
+        sidebar.classList.remove('open');
+      }
+    }
+
+    // ✅ 改善2: toggleSidebar と overlay の管理を改善
+    function toggleSidebar() {
+      const openSheet = document.querySelector('.sheet.open');
+
+      if (openSheet) {
+        closeSidebarAndSheets();
+        return;
+      }
+
+      const sidebar = document.querySelector('.sidebar');
+      const sidebarOverlay = document.getElementById('sidebarOverlay');
+
+      sidebar.classList.toggle('open');
+      sidebarOverlay.classList.toggle('open');
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init);
+    } else {
       init();
-    });
+    }
   </script>
 </body>
 </html>
