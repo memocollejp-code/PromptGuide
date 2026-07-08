@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="description" content="Claudeのプロンプト引き出し - よく使うプロンプトを整理・管理・コピー">
   <meta name="theme-color" content="#1e293b">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -14,6 +14,8 @@
   <title>プロンプトの引き出し</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
+    button, .filter-tab, .prompt-summary, .header, .sidebar-footer { touch-action: manipulation; -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
+    .prompt-body, .form-input, .form-textarea, #searchInput { -webkit-user-select: text; user-select: text; }
     html, body { width: 100%; height: 100%; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     body {
       background-color: #f1f5f9;
@@ -26,8 +28,8 @@
       color: #f1f5f9;
     }
 
-    .app { display: flex; flex-direction: column; height: 100vh; }
-    .header { flex-shrink: 0; background: white; border-bottom: 1px solid #e2e8f0; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; position: sticky; top: 0; z-index: 30; }
+    .app { display: flex; flex-direction: column; height: 100vh; height: 100dvh; }
+    .header { flex-shrink: 0; background: white; border-bottom: 1px solid #e2e8f0; padding: calc(12px + env(safe-area-inset-top, 0px)) calc(16px + env(safe-area-inset-right, 0px)) 12px calc(16px + env(safe-area-inset-left, 0px)); display: flex; align-items: center; justify-content: space-between; gap: 12px; position: sticky; top: 0; z-index: 30; }
     body.dark-mode .header { background: #1e293b; border-bottom-color: #334155; }
 
     .header-left { display: flex; align-items: center; gap: 10px; min-width: 0; }
@@ -41,7 +43,7 @@
     body.dark-mode .header-subtitle { color: #94a3b8; }
 
     .header-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
-    .header-actions button { width: 32px; height: 32px; border-radius: 8px; border: none; background: #f1f5f9; color: #1e293b; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px; transition: background 0.2s; }
+    .header-actions button { width: 44px; height: 44px; border-radius: 8px; border: none; background: #f1f5f9; color: #1e293b; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px; transition: background 0.2s; }
     .header-actions button:active { background: #e2e8f0; }
     body.dark-mode .header-actions button { background: #334155; color: #f1f5f9; }
     body.dark-mode .header-actions button:active { background: #475569; }
@@ -53,7 +55,7 @@
     .sidebar-search { padding: 12px 16px; border-bottom: 1px solid #e2e8f0; flex-shrink: 0; display: flex; align-items: center; gap: 8px; }
     body.dark-mode .sidebar-search { border-bottom-color: #334155; }
 
-    #searchInput { flex: 1; padding: 8px 12px; border-radius: 6px; border: 1px solid #e2e8f0; background: #f8fafc; color: #1e293b; font-size: 14px; }
+    #searchInput { flex: 1; padding: 10px 12px; border-radius: 6px; border: 1px solid #e2e8f0; background: #f8fafc; color: #1e293b; font-size: 16px; }
     #searchInput::placeholder { color: #94a3b8; }
     body.dark-mode #searchInput { background: #0f172a; border-color: #334155; color: #f1f5f9; }
     body.dark-mode #searchInput::placeholder { color: #64748b; }
@@ -66,7 +68,7 @@
     .filter-tabs { display: flex; flex-direction: column; padding: 12px 0; border-bottom: 1px solid #e2e8f0; flex-shrink: 0; max-height: 400px; overflow-y: auto; }
     body.dark-mode .filter-tabs { border-bottom-color: #334155; }
 
-    .filter-tab { padding: 8px 16px; cursor: pointer; font-size: 13px; font-weight: 500; color: #64748b; border-left: 3px solid transparent; transition: all 0.2s; }
+    .filter-tab { padding: 13px 16px; min-height: 44px; display: flex; align-items: center; cursor: pointer; font-size: 13px; font-weight: 500; color: #64748b; border-left: 3px solid transparent; transition: all 0.2s; }
     .filter-tab.active { background: #f0f4f8; color: #1e293b; border-left-color: #3b82f6; }
     body.dark-mode .filter-tab.active { background: #1e293b; color: #f1f5f9; border-left-color: #3b82f6; }
     .filter-tab:active { opacity: 0.7; }
@@ -108,7 +110,7 @@
     body.dark-mode .prompt-title { color: #f1f5f9; }
 
     .prompt-actions { display: flex; gap: 4px; flex-shrink: 0; }
-    .btn-sm { width: 28px; height: 28px; border-radius: 6px; border: none; background: #f1f5f9; color: #1e293b; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px; transition: all 0.2s; }
+    .btn-sm { width: 40px; height: 40px; border-radius: 6px; border: none; background: #f1f5f9; color: #1e293b; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px; transition: all 0.2s; }
     body.dark-mode .btn-sm { background: #334155; color: #f1f5f9; }
     .btn-sm:active { background: #e2e8f0; }
     body.dark-mode .btn-sm:active { background: #475569; }
@@ -124,10 +126,10 @@
 
     .prompt-body.expanded { display: block; }
 
-    .btn-primary { background: #3b82f6; color: white; padding: 10px 16px; border-radius: 6px; border: none; cursor: pointer; font-weight: 600; font-size: 13px; }
+    .btn-primary { background: #3b82f6; color: white; padding: 13px 16px; min-height: 44px; border-radius: 6px; border: none; cursor: pointer; font-weight: 600; font-size: 13px; }
     .btn-primary:active { background: #2563eb; }
 
-    .btn-secondary { background: #e2e8f0; color: #1e293b; padding: 10px 16px; border-radius: 6px; border: none; cursor: pointer; font-weight: 500; font-size: 13px; }
+    .btn-secondary { background: #e2e8f0; color: #1e293b; padding: 13px 16px; min-height: 44px; border-radius: 6px; border: none; cursor: pointer; font-weight: 500; font-size: 13px; }
     .btn-secondary:active { background: #cbd5e1; }
     body.dark-mode .btn-secondary { background: #334155; color: #f1f5f9; }
     body.dark-mode .btn-secondary:active { background: #475569; }
@@ -149,16 +151,16 @@
     .sheet-title { font-size: 18px; font-weight: 700; color: #1e293b; }
     body.dark-mode .sheet-title { color: #f1f5f9; }
 
-    .btn-close { width: 32px; height: 32px; border-radius: 8px; border: none; background: #f1f5f9; color: #1e293b; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+    .btn-close { width: 44px; height: 44px; border-radius: 8px; border: none; background: #f1f5f9; color: #1e293b; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 18px; }
     body.dark-mode .btn-close { background: #334155; color: #f1f5f9; }
 
-    .sheet-body { padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+    .sheet-body { padding: 16px 16px calc(16px + env(safe-area-inset-bottom, 0px)); display: flex; flex-direction: column; gap: 12px; }
 
-    .form-input, .form-textarea { width: 100%; padding: 10px 12px; border-radius: 6px; border: 1px solid #e2e8f0; background: white; color: #1e293b; font-size: 14px; font-family: inherit; }
+    .form-input, .form-textarea { width: 100%; padding: 12px; border-radius: 6px; border: 1px solid #e2e8f0; background: white; color: #1e293b; font-size: 16px; font-family: inherit; }
     .form-input::placeholder, .form-textarea::placeholder { color: #94a3b8; }
     body.dark-mode .form-input, body.dark-mode .form-textarea { background: #0f172a; border-color: #334155; color: #f1f5f9; }
 
-    .toast { position: fixed; bottom: 20px; left: 20px; right: 20px; background: #1e293b; color: white; padding: 12px 16px; border-radius: 8px; font-size: 14px; z-index: 60; opacity: 0; pointer-events: none; transition: opacity 0.2s; max-width: 320px; margin: 0 auto; left: 50%; transform: translateX(-50%); }
+    .toast { position: fixed; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); left: 20px; right: 20px; background: #1e293b; color: white; padding: 12px 16px; border-radius: 8px; font-size: 14px; z-index: 60; opacity: 0; pointer-events: none; transition: opacity 0.2s; max-width: 320px; margin: 0 auto; left: 50%; transform: translateX(-50%); }
     .toast.show { opacity: 1; pointer-events: auto; }
 
     #sidebarToggle { display: none; }
@@ -178,7 +180,7 @@
         <button id="sidebarToggle">☰</button>
         <div class="header-icon">📋</div>
         <div class="header-text">
-          <div class="header-title">プロンプト引き出し <span class="app-version">v1.5.3</span></div>
+          <div class="header-title">プロンプト引き出し <span class="app-version">v1.6.0</span></div>
           <div class="header-subtitle" id="categoryCount">全0件</div>
         </div>
       </div>
@@ -205,11 +207,6 @@
 
       <div class="content">
         <div class="content-header">
-          <div class="content-actions">
-            <button id="exportBtn">📥 エクスポート</button>
-            <button id="importBtn">📤 インポート</button>
-            <button id="clearBtn">🗑️ 全削除</button>
-          </div>
           <div class="content-title" id="contentTitle">すべて</div>
         </div>
 
@@ -305,69 +302,189 @@
 
   <div id="menuSheet" class="sheet">
     <div class="sheet-header">
-      <div class="sheet-title">メニュー</div>
+      <div class="sheet-title">⚙️ 設定</div>
       <button class="btn-close">✕</button>
     </div>
     <div class="sheet-body">
-      <button id="importMenuBtn" class="btn-secondary" style="width: 100%; justify-content: flex-start;">📤 インポート</button>
-      <button id="exportMenuBtn" class="btn-secondary" style="width: 100%; justify-content: flex-start;">📥 エクスポート</button>
-      <button id="clearMenuBtn" class="btn-secondary" style="width: 100%; justify-content: flex-start;">🗑️ 全削除</button>
+      <button id="categoryMenuBtn" class="btn-secondary" style="width: 100%; text-align: left;">📑 カテゴリ管理</button>
+      <button id="themeMenuBtn" class="btn-secondary" style="width: 100%; text-align: left;">🌗 テーマ切替</button>
+      <button id="exportMenuBtn" class="btn-secondary" style="width: 100%; text-align: left;">📥 バックアップ（エクスポート）</button>
+      <button id="importMenuBtn" class="btn-secondary" style="width: 100%; text-align: left;">📤 復元（インポート）</button>
+      <button id="clearMenuBtn" class="btn-secondary" style="width: 100%; text-align: left; color: #dc2626;">🗑️ データ全消去</button>
+      <div id="storageStatus" style="font-size: 12px; color: #94a3b8; padding: 4px 2px;"></div>
     </div>
   </div>
 
   <div id="toast" class="toast"></div>
 
   <script>
+    const APP_CONFIG = { name: 'プロンプトの引き出し', version: '1.6.0', schemaVersion: 2 };
+
     let allPrompts = [];
     let categories = [];
+    let meta = { schemaVersion: APP_CONFIG.schemaVersion, theme: 'light' };
     let filteredPrompts = [];
     let currentFilter = 'all';
     let editingId = null;
+    let protectedMode = false; // 読込失敗時はデータ破壊を防ぐため書込禁止
+
+    // ===== IndexedDB 層（起動時一括インメモリロード / 変更時デバウンス非同期永続化） =====
+    const DB_NAME = 'prompt_drawer';
+    const DB_VERSION = 1;
+    const STORE = 'kv';
+    let dbPromise = null;
+
+    function openDB() {
+      if (dbPromise) return dbPromise;
+      dbPromise = new Promise((resolve, reject) => {
+        const req = indexedDB.open(DB_NAME, DB_VERSION);
+        req.onupgradeneeded = () => {
+          if (!req.result.objectStoreNames.contains(STORE)) req.result.createObjectStore(STORE);
+        };
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+      });
+      return dbPromise;
+    }
+
+    function idbGet(key) {
+      return openDB().then(db => new Promise((resolve, reject) => {
+        const tx = db.transaction(STORE, 'readonly');
+        const req = tx.objectStore(STORE).get(key);
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+      }));
+    }
+
+    function idbSetAll(entries) {
+      return openDB().then(db => new Promise((resolve, reject) => {
+        const tx = db.transaction(STORE, 'readwrite');
+        const store = tx.objectStore(STORE);
+        Object.keys(entries).forEach(k => store.put(entries[k], k));
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error);
+      }));
+    }
+
+    function idbClear() {
+      return openDB().then(db => new Promise((resolve, reject) => {
+        const tx = db.transaction(STORE, 'readwrite');
+        tx.objectStore(STORE).clear();
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error);
+      }));
+    }
+
+    // ===== マイグレーション =====
+    const migrations = {
+      // v1(localStorage時代) → v2(IndexedDB): データ形状は同一なのでそのまま採用
+      2: (data) => data
+    };
+
+    function runMigrations(data, fromVersion) {
+      let d = data;
+      for (let v = fromVersion + 1; v <= APP_CONFIG.schemaVersion; v++) {
+        if (migrations[v]) d = migrations[v](d);
+      }
+      return d;
+    }
+
+    // ===== 永続化（デバウンス + 即時フラッシュ） =====
+    let saveTimer = null;
+    let dirty = false;
+
+    function scheduleSave() {
+      if (protectedMode) return;
+      dirty = true;
+      if (saveTimer) clearTimeout(saveTimer);
+      saveTimer = setTimeout(flushSave, 400);
+    }
+
+    async function flushSave() {
+      if (!dirty || protectedMode) return;
+      if (saveTimer) { clearTimeout(saveTimer); saveTimer = null; }
+      dirty = false;
+      try {
+        await idbSetAll({
+          prompts: JSON.parse(JSON.stringify(allPrompts)),
+          categories: JSON.parse(JSON.stringify(categories)),
+          meta: JSON.parse(JSON.stringify(meta))
+        });
+      } catch (e) {
+        console.error('永続化エラー:', e);
+        dirty = true;
+        showToast('💾 データ保存に失敗しました');
+      }
+    }
+
+    // 互換API（既存コードの呼び出し箇所を維持）
+    async function saveData() { scheduleSave(); }
+    async function saveCategories() { scheduleSave(); }
+
+    async function loadAll() {
+      try {
+        const [p, c, m] = await Promise.all([idbGet('prompts'), idbGet('categories'), idbGet('meta')]);
+
+        if (p === undefined && c === undefined) {
+          // 初回起動: 旧localStorageデータがあれば自動移行
+          const legacyP = localStorage.getItem('promptDrawerData');
+          const legacyC = localStorage.getItem('promptDrawerCategories');
+          const legacyT = localStorage.getItem('promptDrawerTheme');
+          allPrompts = legacyP ? JSON.parse(legacyP) : [];
+          categories = legacyC ? JSON.parse(legacyC) : [];
+          meta = { schemaVersion: APP_CONFIG.schemaVersion, theme: legacyT || 'light' };
+          if (legacyP || legacyC) {
+            const migrated = runMigrations({ prompts: allPrompts, categories }, 1);
+            allPrompts = migrated.prompts; categories = migrated.categories;
+            await idbSetAll({ prompts: allPrompts, categories, meta });
+            console.log('localStorage → IndexedDB 移行完了（旧データはバックアップとして保持）');
+          }
+        } else {
+          allPrompts = Array.isArray(p) ? p : [];
+          categories = Array.isArray(c) ? c : [];
+          meta = (m && typeof m === 'object') ? m : { schemaVersion: APP_CONFIG.schemaVersion, theme: 'light' };
+          const from = meta.schemaVersion || 1;
+          if (from < APP_CONFIG.schemaVersion) {
+            const migrated = runMigrations({ prompts: allPrompts, categories }, from);
+            allPrompts = migrated.prompts; categories = migrated.categories;
+            meta.schemaVersion = APP_CONFIG.schemaVersion;
+            scheduleSave();
+          }
+        }
+      } catch (e) {
+        // 保護モード: 既存データを上書きしない
+        console.error('データロードエラー（保護モード移行）:', e);
+        protectedMode = true;
+        allPrompts = []; categories = [];
+        showToast('⚠️ データ読込に失敗。保護モードで起動（保存無効）');
+      }
+    }
 
     async function init() {
-      await loadData();
-      await loadCategories();
+      // OSによる自動削除を防止
+      if (navigator.storage && navigator.storage.persist) {
+        navigator.storage.persist().catch(() => {});
+      }
+      await loadAll();
       initializeTheme();
       renderUI();
       attachEventListeners();
-    }
 
-    async function loadData() {
-      try {
-        const stored = localStorage.getItem('promptDrawerData');
-        allPrompts = stored ? JSON.parse(stored) : [];
-      } catch (e) {
-        console.error("データロードエラー:", e);
-        allPrompts = [];
-      }
-    }
+      // 画面非表示・アプリ切替時に即時コミット
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'hidden') flushSave();
+      });
+      window.addEventListener('pagehide', flushSave);
 
-    async function loadCategories() {
-      try {
-        const stored = localStorage.getItem('promptDrawerCategories');
-        categories = stored ? JSON.parse(stored) : [];
-      } catch (e) {
-        console.error("カテゴリロードエラー:", e);
-        categories = [];
-      }
-    }
-
-    async function saveData() {
-      try {
-        localStorage.setItem('promptDrawerData', JSON.stringify(allPrompts));
-      } catch (e) {
-        console.error("セーブエラー:", e);
-        showToast("💾 データ保存に失敗しました");
-      }
-    }
-
-    async function saveCategories() {
-      try {
-        localStorage.setItem('promptDrawerCategories', JSON.stringify(categories));
-      } catch (e) {
-        console.error("カテゴリセーブエラー:", e);
-        // ✅ 修正9: ユーザーに通知
-        showToast("💾 カテゴリ保存に失敗しました");
+      // Service Worker 登録（旧版では未登録＝オフライン非対応だった）
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('./sw.js').then(reg => {
+          const send = () => {
+            const sw = reg.active || navigator.serviceWorker.controller;
+            if (sw) sw.postMessage({ type: 'SET_VERSION', version: '20260708v' + APP_CONFIG.version });
+          };
+          if (reg.active) send(); else navigator.serviceWorker.ready.then(send);
+        }).catch(e => console.warn('SW登録失敗:', e));
       }
     }
 
@@ -517,7 +634,7 @@
         item.innerHTML = `
           <div style="width: 24px; height: 24px; border-radius: 50%; background: ${cat.color}; flex-shrink: 0;"></div>
           <div style="flex: 1;">
-            <div style="font-weight: 600; color: #1e293b;">${cat.label}</div>
+            <div style="font-weight: 600;">${cat.label}</div>
             <div style="font-size: 12px; color: #94a3b8;">${cat.code} • ${catCount}件</div>
           </div>
           <button class="btn-sm" data-cat-id="${cat.id}">🗑️</button>
@@ -577,7 +694,8 @@
       const prompt = allPrompts.find(p => p.id === id);
       if (prompt) {
         document.getElementById('editPromptTitle').value = prompt.title;
-        document.getElementById('editPromptCategory').value = prompt.category;
+        const catSelect = document.getElementById('editPromptCategory');
+        catSelect.value = categories.some(c => c.code === prompt.category) ? prompt.category : '';
         document.getElementById('editPromptBody').value = prompt.body;
         pushHistory('editPrompt');
       }
@@ -743,7 +861,6 @@
       };
 
       // ✅ 改善3: インポート検証ロジックを明確化
-      document.getElementById('importBtn').onclick = () => document.getElementById('importFile').click();
       document.getElementById('importMenuBtn').onclick = () => {
         document.getElementById('importFile').click();
         closeAllSheets();
@@ -784,10 +901,13 @@
               }
             });
 
-            allPrompts = data.prompts || [];
-            categories = data.categories || [];
-            await saveData();
-            await saveCategories();
+            const fromVer = typeof data.schemaVersion === 'number' ? data.schemaVersion : 1;
+            let imported = { prompts: data.prompts || [], categories: data.categories || [] };
+            if (fromVer < APP_CONFIG.schemaVersion) imported = runMigrations(imported, fromVer);
+            allPrompts = imported.prompts;
+            categories = imported.categories;
+            scheduleSave();
+            await flushSave();
             renderUI();
             updateCategoryOptions();
             showToast("✅ インポートしました");
@@ -800,17 +920,22 @@
         document.getElementById('importFile').value = '';
       });
 
-      document.getElementById('exportBtn').onclick = exportData;
       document.getElementById('exportMenuBtn').onclick = () => {
         exportData();
         closeAllSheets();
       };
 
-      document.getElementById('clearBtn').onclick = clearAllData;
       document.getElementById('clearMenuBtn').onclick = () => {
-        clearAllData();
         closeAllSheets();
+        clearAllData();
       };
+
+      document.getElementById('categoryMenuBtn').onclick = () => {
+        closeAllSheets();
+        pushHistory('category');
+      };
+
+      document.getElementById('themeMenuBtn').onclick = toggleTheme;
 
       // Sheet クローズボタン
       document.querySelectorAll('.btn-close').forEach(btn => {
@@ -819,11 +944,11 @@
 
       // Overlay クローズ
       document.getElementById('modalOverlay').onclick = closeAllSheets;
-      document.getElementById('sidebarOverlay').onclick = closeSidebarOnMobile;
+      document.getElementById('sidebarOverlay').onclick = closeSidebar;
 
       // キーボード処理
       document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') closeAllSheets();
+        if (e.key === 'Escape') { closeAllSheets(); closeSidebar(); }
       });
     }
 
@@ -867,43 +992,63 @@
       );
     }
 
-    function exportData() {
-      const data = { prompts: allPrompts, categories };
+    async function exportData() {
+      await flushSave();
+      const data = {
+        app: APP_CONFIG.name,
+        version: APP_CONFIG.version,
+        schemaVersion: meta.schemaVersion,
+        exportedAt: new Date().toISOString(),
+        prompts: allPrompts,
+        categories
+      };
       const json = JSON.stringify(data, null, 2);
       const blob = new Blob([json], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `prompts_${new Date().toISOString().split('T')[0]}.json`;
+      a.download = `プロンプトの引き出し_${new Date().toISOString().split('T')[0]}_v${APP_CONFIG.version}.json`;
       a.click();
       URL.revokeObjectURL(url);
       showToast('✅ エクスポートしました');
     }
 
-    function clearAllData() {
-      if (confirm('本当にすべて削除しますか？この操作は取り消せません。')) {
-        allPrompts = [];
-        categories = [];
-        currentFilter = 'all';
-        saveData();
-        saveCategories();
-        renderUI();
-        showToast('✅ すべて削除しました');
-      }
+    async function clearAllData() {
+      if (!confirm('すべてのプロンプトとカテゴリを削除します。よろしいですか？')) return;
+      if (!confirm('【最終確認】この操作は取り消せません。本当に削除しますか？\n※事前のバックアップ（エクスポート）を推奨します')) return;
+      allPrompts = [];
+      categories = [];
+      currentFilter = 'all';
+      try { await idbClear(); } catch (e) { console.error(e); }
+      dirty = true;
+      await flushSave(); // 空データ + meta（テーマ設定）を書き戻す
+      renderUI();
+      showToast('✅ すべて削除しました');
     }
 
     function toggleTheme() {
       document.body.classList.toggle('dark-mode');
-      document.getElementById('themeToggle').textContent = document.body.classList.contains('dark-mode') ? '☀️' : '🌙';
-      localStorage.setItem('promptDrawerTheme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
+      const isDark = document.body.classList.contains('dark-mode');
+      document.getElementById('themeToggle').textContent = isDark ? '☀️' : '🌙';
+      meta.theme = isDark ? 'dark' : 'light';
+      scheduleSave();
     }
 
     function initializeTheme() {
-      const theme = localStorage.getItem('promptDrawerTheme') || 'light';
-      if (theme === 'dark') {
+      if (meta.theme === 'dark') {
         document.body.classList.add('dark-mode');
         document.getElementById('themeToggle').textContent = '☀️';
       }
+    }
+
+    async function updateStorageStatus() {
+      const el = document.getElementById('storageStatus');
+      let persisted = false;
+      try {
+        if (navigator.storage && navigator.storage.persisted) persisted = await navigator.storage.persisted();
+      } catch (e) {}
+      const mode = protectedMode ? '⚠️ 保護モード（保存無効）' : (persisted ? '🔒 永続ストレージ有効' : '☁️ 永続化未承認（OSが削除する可能性あり）');
+      el.textContent = `v${APP_CONFIG.version} / IndexedDB / ${mode} / ${allPrompts.length}件`;
     }
 
     let toastTimeoutId = null;
@@ -953,6 +1098,7 @@
         document.getElementById('newCategorySheet').classList.add('open');
         modalOverlay.classList.add('open');
       } else if (state === 'menu') {
+        updateStorageStatus();
         document.getElementById('menuSheet').classList.add('open');
         modalOverlay.classList.add('open');
       }
@@ -982,33 +1128,36 @@
       editingId = null;
     }
 
+    // 🐞 フリーズ根本修正:
+    // 旧版はサイドバーを閉じる際に sidebarOverlay の open を外し忘れており、
+    // 透明なオーバーレイ（pointer-events: auto）が画面全体を覆い続けて
+    // 「何か操作するとフリーズする」状態になっていた。
+    // → サイドバーと overlay を必ずセットで開閉する closeSidebar() に一本化。
+    function closeSidebar() {
+      document.querySelector('.sidebar').classList.remove('open');
+      document.getElementById('sidebarOverlay').classList.remove('open');
+    }
+
     function closeSidebarAndSheets() {
-      const sidebar = document.querySelector('.sidebar');
-      sidebar.classList.remove('open');
+      closeSidebar();
       closeAllSheets();
     }
 
     function closeSidebarOnMobile() {
-      if (window.innerWidth <= 600) {
-        const sidebar = document.querySelector('.sidebar');
-        sidebar.classList.remove('open');
-      }
+      if (window.innerWidth <= 600) closeSidebar();
     }
 
-    // ✅ 改善2: toggleSidebar と overlay の管理を改善
     function toggleSidebar() {
       const openSheet = document.querySelector('.sheet.open');
-
       if (openSheet) {
         closeSidebarAndSheets();
         return;
       }
-
       const sidebar = document.querySelector('.sidebar');
-      const sidebarOverlay = document.getElementById('sidebarOverlay');
-
-      sidebar.classList.toggle('open');
-      sidebarOverlay.classList.toggle('open');
+      const overlay = document.getElementById('sidebarOverlay');
+      const willOpen = !sidebar.classList.contains('open');
+      sidebar.classList.toggle('open', willOpen);
+      overlay.classList.toggle('open', willOpen);
     }
 
     if (document.readyState === 'loading') {
