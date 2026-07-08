@@ -123,6 +123,7 @@
     /* ✅ 改善1: クラス名を "expanded" に変更し、表示ロジックを正規化 */
     .prompt-body { display: none; background: #f8fafc; border-radius: 6px; padding: 12px; font-family: "Courier New", monospace; font-size: 12px; color: #334155; white-space: pre-wrap; word-break: break-word; max-height: none; overflow-y: auto; }
     body.dark-mode .prompt-body { background: #0f172a; color: #cbd5e1; }
+    #fillPreview { background: #f8fafc; border-radius: 6px; padding: 12px; font-family: monospace; font-size: 12px; white-space: pre-wrap; word-break: break-word; max-height: 30vh; overflow-y: auto; color: #334155; }
     body.dark-mode #fillPreview { background: #0f172a; color: #cbd5e1; }
 
     .prompt-body.expanded { display: block; }
@@ -196,7 +197,7 @@
         <button id="sidebarToggle">☰</button>
         <div class="header-icon">📋</div>
         <div class="header-text">
-          <div class="header-title">プロンプト引き出し <span class="app-version">v1.8.0</span></div>
+          <div class="header-title">プロンプト引き出し <span class="app-version">v1.13.0</span></div>
           <div class="header-subtitle" id="categoryCount">全0件</div>
         </div>
       </div>
@@ -331,7 +332,7 @@
     <div class="sheet-body">
       <button id="categoryMenuBtn" class="btn-secondary" style="width: 100%; text-align: left;">📑 カテゴリ管理</button>
       <button id="themeMenuBtn" class="btn-secondary" style="width: 100%; text-align: left;">🌗 テーマ切替</button>
-      <button id="exportMenuBtn" class="btn-secondary" style="width: 100%; text-align: left;">📥 バックアップ（エクスポート）</button>
+      <button id="exportMenuBtn" class="btn-secondary" style="width: 100%; text-align: left;">☁️ バックアップ（Drive等へ共有）</button>
       <button id="importMenuBtn" class="btn-secondary" style="width: 100%; text-align: left;">📤 復元（インポート）</button>
       <button id="clearMenuBtn" class="btn-secondary" style="width: 100%; text-align: left; color: #dc2626;">🗑️ データ全消去</button>
       <div id="storageStatus" style="font-size: 12px; color: #94a3b8; padding: 4px 2px;"></div>
@@ -345,7 +346,7 @@
     </div>
     <div class="sheet-body">
       <div id="fillFields"></div>
-      <div id="fillPreview" style="background: #f8fafc; border-radius: 6px; padding: 12px; font-family: monospace; font-size: 12px; white-space: pre-wrap; word-break: break-word; max-height: 30vh; overflow-y: auto; color: #334155;"></div>
+      <div id="fillPreview"></div>
       <button class="btn-primary" id="fillCopyBtn" style="width: 100%;">📋 埋めてコピー</button>
       <button class="btn-secondary" id="fillRawCopyBtn" style="width: 100%;">そのままコピー（変数のまま）</button>
     </div>
@@ -354,7 +355,13 @@
   <div id="toast" class="toast"></div>
 
   <script>
-    const APP_CONFIG = { name: 'プロンプトの引き出し', version: '1.8.0', schemaVersion: 3 };
+    const APP_CONFIG = { name: 'プロンプトの引き出し', version: '1.13.0', schemaVersion: 4 };
+
+    // 衝突しないID生成（crypto.randomUUID非対応環境へのフォールバック付き）
+    function genId() {
+      if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+      return Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10);
+    }
 
     let allPrompts = [];
     let categories = [];
@@ -423,6 +430,17 @@
           if (p.lastUsedAt === undefined) p.lastUsedAt = null;
         });
         return data;
+      },
+      // v4: IDをUUID化するにあたり作成日時を独立フィールドへ
+      //（旧IDは Date.now() 文字列だったため、そこから createdAt を復元。ID自体は変更しない＝参照を壊さない）
+      4: (data) => {
+        (data.prompts || []).forEach(p => {
+          if (typeof p.createdAt !== 'number') {
+            const n = Number(p.id);
+            p.createdAt = Number.isFinite(n) && n > 0 ? n : 0;
+          }
+        });
+        return data;
       }
     };
 
@@ -465,6 +483,22 @@
     // 互換API（既存コードの呼び出し箇所を維持）
     async function saveData() { scheduleSave(); }
     async function saveCategories() { scheduleSave(); }
+
+    // 🐞 修正2: 「保存」「削除」「作成」など確定ボタン押下時専用の即時保存。
+    // 通常の入力中はscheduleSave()の400msデバウンスを維持し高頻度書き込みによる
+    // 発熱・パフォーマンス低下を防ぐが、確定ボタンの直後だけはタイマーを待たず
+    // IndexedDBへの物理的な書き込み完了を待ってから画面を閉じる。
+    // これによりユーザーが保存直後にホーム画面に戻ったりアプリを強制終了しても、
+    // 書き込みが完了する前にプロセスが凍結されてデータが消えることを防ぐ。
+    async function flushSaveNow() {
+      dirty = true;
+      if (saveTimer) { clearTimeout(saveTimer); saveTimer = null; }
+      try {
+        await flushSave();
+      } catch (e) {
+        console.error('確定保存(flushSaveNow)に失敗:', e);
+      }
+    }
 
     async function loadAll() {
       try {
@@ -510,6 +544,7 @@
       if (navigator.storage && navigator.storage.persist) {
         navigator.storage.persist().catch(() => {});
       }
+      history.replaceState({ depth: 0 }, ''); // 戻る連携の基準点
       await loadAll();
       initializeTheme();
       renderUI();
@@ -526,7 +561,7 @@
         navigator.serviceWorker.register('./sw.js').then(reg => {
           const send = () => {
             const sw = reg.active || navigator.serviceWorker.controller;
-            if (sw) sw.postMessage({ type: 'SET_VERSION', version: '20260708v' + APP_CONFIG.version });
+            if (sw) sw.postMessage({ type: 'SET_VERSION', version: '20260709v' + APP_CONFIG.version });
           };
           if (reg.active) send(); else navigator.serviceWorker.ready.then(send);
         }).catch(e => console.warn('SW登録失敗:', e));
@@ -534,6 +569,11 @@
     }
 
     function renderUI() {
+      // 🐞 修正: 絞り込み中のカテゴリが削除/インポートで消えた場合、「すべて」に自動復帰
+      if (currentFilter !== 'all' && currentFilter !== 'favorites' &&
+          !categories.some(c => c.code === currentFilter)) {
+        currentFilter = 'all';
+      }
       renderCategoryChips();
       renderFilterTabs();
       renderPromptCards();
@@ -602,7 +642,16 @@
         const catCount = allPrompts.filter(p => p.category === cat.code).length;
         const tab = document.createElement('div');
         tab.className = `filter-tab ${currentFilter === cat.code ? 'active' : ''}`;
-        tab.innerHTML = `<span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: ${cat.color}; margin-right: 6px;"></span>${cat.label} <span class="filter-count">${catCount}</span>`;
+        // ✅ XSS対策: cat.labelをtextContentで構築
+        const tabDot = document.createElement('span');
+        tabDot.style.cssText = 'display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px;';
+        tabDot.style.background = cat.color;
+        tab.appendChild(tabDot);
+        tab.appendChild(document.createTextNode(cat.label + ' '));
+        const tabCount = document.createElement('span');
+        tabCount.className = 'filter-count';
+        tabCount.textContent = catCount;
+        tab.appendChild(tabCount);
         tab.onclick = () => { currentFilter = cat.code; renderUI(); closeSidebarOnMobile(); };
         container.appendChild(tab);
       });
@@ -642,7 +691,9 @@
       filteredPrompts = filteredPrompts.slice().sort((a, b) => {
         if (mode === 'mostUsed') return (b.useCount || 0) - (a.useCount || 0);
         if (mode === 'recentUsed') return (b.lastUsedAt || 0) - (a.lastUsedAt || 0);
-        return Number(b.id) - Number(a.id); // newest: id は Date.now() 文字列
+        const ca = a.createdAt || Number(a.id) || 0;
+        const cb = b.createdAt || Number(b.id) || 0;
+        return cb - ca; // newest: createdAt基準（v4以前のデータはIDから復元済み）
       });
 
       if (filteredPrompts.length === 0) {
@@ -671,9 +722,9 @@
             ${catBadge}
             <div class="prompt-title"></div>
             <div class="prompt-actions">
-              <button class="btn-sm btn-fav ${prompt.isFavorite ? 'active' : ''}" data-id="${prompt.id}">⭐</button>
-              <button class="btn-sm btn-copy" data-id="${prompt.id}">📋</button>
-              <button class="btn-sm btn-edit" data-id="${prompt.id}">✏️</button>
+              <button class="btn-sm btn-fav ${prompt.isFavorite ? 'active' : ''}">⭐</button>
+              <button class="btn-sm btn-copy">📋</button>
+              <button class="btn-sm btn-edit">✏️</button>
             </div>
           </div>
           <div class="prompt-toggle-hint"></div>
@@ -704,11 +755,16 @@
         card.querySelector('.btn-edit').onclick = (e) => { e.stopPropagation(); openEditPrompt(prompt.id); };
 
         // カード全体タップで開閉（展開中の本文タップは除外＝コピー用の長押し選択を妨げない）
+        // ⚡ その場でclass切替のみ行い、一覧全体は再描画しない（件数増加時のカクつき防止）
         card.onclick = (e) => {
           if (e.target.closest('.prompt-body')) return;
-          if (expandedIds.has(prompt.id)) expandedIds.delete(prompt.id);
-          else expandedIds.add(prompt.id);
-          renderPromptCards();
+          const nowOpen = !expandedIds.has(prompt.id);
+          if (nowOpen) expandedIds.add(prompt.id);
+          else expandedIds.delete(prompt.id);
+          body.classList.toggle('expanded', nowOpen);
+          hint.textContent = nowOpen
+            ? hint.textContent.replace('▾ タップで本文', '▴ タップで閉じる')
+            : hint.textContent.replace('▴ タップで閉じる', '▾ タップで本文');
         };
 
         container.appendChild(card);
@@ -736,16 +792,29 @@
         const item = document.createElement('div');
         item.style.cssText = 'display: flex; align-items: center; gap: 12px; padding: 12px; border: 1px solid #e2e8f0; border-radius: 6px; margin-bottom: 8px;';
         
-        item.innerHTML = `
-          <div style="width: 24px; height: 24px; border-radius: 50%; background: ${cat.color}; flex-shrink: 0;"></div>
-          <div style="flex: 1;">
-            <div style="font-weight: 600;">${cat.label}</div>
-            <div style="font-size: 12px; color: #94a3b8;">${cat.code} • ${catCount}件</div>
-          </div>
-          <button class="btn-sm" data-cat-id="${cat.id}">🗑️</button>
-        `;
+        // ✅ XSS対策: ユーザー入力(label/code)はtextContentで構築（innerHTML展開禁止）
+        const dot = document.createElement('div');
+        dot.style.cssText = 'width: 24px; height: 24px; border-radius: 50%; flex-shrink: 0;';
+        dot.style.background = cat.color;
 
-        const deleteBtn = item.querySelector('.btn-sm');
+        const info = document.createElement('div');
+        info.style.flex = '1';
+        const labelDiv = document.createElement('div');
+        labelDiv.style.fontWeight = '600';
+        labelDiv.textContent = cat.label;
+        const codeDiv = document.createElement('div');
+        codeDiv.style.cssText = 'font-size: 12px; color: #94a3b8;';
+        codeDiv.textContent = `${cat.code} • ${catCount}件`;
+        info.appendChild(labelDiv);
+        info.appendChild(codeDiv);
+
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'btn-sm';
+        deleteBtn.textContent = '🗑️';
+
+        item.appendChild(dot);
+        item.appendChild(info);
+        item.appendChild(deleteBtn);
         deleteBtn.onclick = async () => {
           if (confirm(`「${cat.label}」を削除しますか？\n※カテゴリのプロンプトはカテゴリなしになります`)) {
             categories = categories.filter(c => c.id !== cat.id);
@@ -905,35 +974,11 @@
       document.getElementById('searchInput').addEventListener('input', (e) => {
         // ✅ 修正7: IME 確定中は検索しない
         if (isComposing) return;
-        
-        const value = e.target.value.trim();
+
+        // クリアボタンの表示切替のみ行い、絞り込みは renderPromptCards に一元化
+        //（従来はここで同じフィルタ計算を二重に行っていた）
         const clearBtn = document.getElementById('searchClear');
-
-        // クリアボタンの表示/非表示を切り替え
-        if (value.length > 0) {
-          clearBtn.classList.add('visible');
-        } else {
-          clearBtn.classList.remove('visible');
-        }
-
-        // 検索フィルタリング
-        if (value.length === 0) {
-          filteredPrompts = allPrompts.filter(p => {
-            if (currentFilter === 'all') return true;
-            if (currentFilter === 'favorites') return p.isFavorite;
-            return p.category === currentFilter;
-          });
-        } else {
-          const searchLower = value.toLowerCase();
-          filteredPrompts = allPrompts.filter(p => {
-            const matchesFilter = currentFilter === 'all' || 
-                                  (currentFilter === 'favorites' && p.isFavorite) ||
-                                  p.category === currentFilter;
-            const matchesSearch = p.title.toLowerCase().includes(searchLower) || 
-                                 p.body.toLowerCase().includes(searchLower);
-            return matchesFilter && matchesSearch;
-          });
-        }
+        clearBtn.classList.toggle('visible', e.target.value.trim().length > 0);
         renderPromptCards();
       });
 
@@ -954,7 +999,8 @@
         }
 
         allPrompts.push({
-          id: Date.now().toString(),
+          id: genId(),
+          createdAt: Date.now(),
           title,
           category,
           body,
@@ -963,8 +1009,12 @@
           lastUsedAt: null
         });
 
-        await saveData();
+        await flushSaveNow();
         renderUI();
+        // ✅ 保存成功時のみ下書きをクリア（誤タップで閉じても下書きは保持される）
+        document.getElementById('newPromptTitle').value = '';
+        document.getElementById('newPromptCategory').value = '';
+        document.getElementById('newPromptBody').value = '';
         closeAllSheets();
         showToast('✅ プロンプトを追加しました');
       };
@@ -990,7 +1040,7 @@
           prompt.title = title;
           prompt.category = category;
           prompt.body = body;
-          await saveData();
+          await flushSaveNow();
           renderUI();
           closeAllSheets();
           showToast('✅ プロンプトを更新しました');
@@ -1006,7 +1056,7 @@
         
         if (confirm('本当に削除しますか？')) {
           allPrompts = allPrompts.filter(p => p.id !== editingId);
-          await saveData();
+          await flushSaveNow();
           renderUI();
           closeAllSheets();
           showToast('✅ プロンプトを削除しました');
@@ -1029,23 +1079,27 @@
         }
 
         categories.push({
-          id: Date.now().toString(),
+          id: genId(),
           label,
           code,
           color
         });
 
-        await saveCategories();
+        await flushSaveNow();
         renderUI();
         updateCategoryOptions();
+        // 保存成功時のみ入力をクリア
+        document.getElementById('newCategoryLabel').value = '';
+        document.getElementById('newCategoryCode').value = '';
+        document.getElementById('newCategoryColor').value = '#3b82f6';
         closeAllSheets();
         showToast('✅ カテゴリを作成しました');
       };
 
-      // ✅ 改善3: インポート検証ロジックを明確化
+      // ✅ 修正2: ファイル選択をキャンセルしても設定シートが閉じないよう、ここでは閉じない。
+      //    シートを閉じるのはインポートが正常に完了した時のみ（change イベント側で実施）。
       document.getElementById('importMenuBtn').onclick = () => {
         document.getElementById('importFile').click();
-        closeAllSheets();
       };
 
       document.getElementById('importFile').addEventListener('change', async (e) => {
@@ -1086,13 +1140,40 @@
             const fromVer = typeof data.schemaVersion === 'number' ? data.schemaVersion : 1;
             let imported = { prompts: data.prompts || [], categories: data.categories || [] };
             if (fromVer < APP_CONFIG.schemaVersion) imported = runMigrations(imported, fromVer);
-            allPrompts = imported.prompts;
-            categories = imported.categories;
-            scheduleSave();
-            await flushSave();
+
+            // ✅ 修正1: マージ（追加）か上書きかをユーザーに選択させる
+            // OK  = 現在のデータに追加（マージ）
+            // キャンセル = 既存データを消して置き換え（上書き）
+            const mergeMode = confirm(
+              'インポート方法を選んでください。\n\n[OK] 現在のデータに追加する（マージ）\n[キャンセル] 既存のデータを消してファイルの内容で上書きする'
+            );
+
+            if (mergeMode) {
+              // 既存にないカテゴリコードだけ追加
+              const existingCatCodes = new Set(categories.map(c => c.code));
+              const newCats = imported.categories.filter(c => !existingCatCodes.has(c.code));
+              categories = categories.concat(newCats);
+
+              // IDが既存と衝突するプロンプトは新規IDを振り直して追加（データ消失防止）
+              const existingIds = new Set(allPrompts.map(p => p.id));
+              const newPrompts = imported.prompts.map(p => {
+                if (existingIds.has(p.id)) {
+                  return Object.assign({}, p, { id: genId() });
+                }
+                return p;
+              });
+              allPrompts = allPrompts.concat(newPrompts);
+            } else {
+              allPrompts = imported.prompts;
+              categories = imported.categories;
+            }
+
+            await flushSaveNow();
             renderUI();
             updateCategoryOptions();
-            showToast("✅ インポートしました");
+            showToast(mergeMode ? "✅ データをマージしました" : "✅ データを上書きしました");
+            // ✅ インポートが正常に完了した時だけ設定シートを閉じる
+            closeAllSheets();
           } catch (e) {
             console.error("インポートエラー:", e);
             showToast("⚠️ インポートに失敗しました");
@@ -1108,13 +1189,11 @@
       };
 
       document.getElementById('clearMenuBtn').onclick = () => {
-        closeAllSheets();
-        clearAllData();
+        clearAllData(); // キャンセル時は設定シートに留まる。削除成功時のみ内部で閉じる
       };
 
       document.getElementById('categoryMenuBtn').onclick = () => {
-        closeAllSheets();
-        pushHistory('category');
+        pushHistory('category'); // 設定の上に重ねる（戻る操作で設定へ戻れる）
       };
 
       document.getElementById('themeMenuBtn').onclick = toggleTheme;
@@ -1182,15 +1261,29 @@
     }
 
     function validatePrompts(prompts) {
-      return Array.isArray(prompts) && prompts.every(p =>
-        typeof p === 'object' &&
-        p !== null &&
-        typeof p.id === 'string' &&
-        typeof p.title === 'string' &&
-        typeof p.category === 'string' &&
-        typeof p.body === 'string' &&
-        typeof p.isFavorite === 'boolean'
-      );
+      // 🐞 修正3: createdAt / useCount / lastUsedAt はスキーマv3・v4で追加されたフィールドのため、
+      //    古いバックアップ（schemaVersion 1〜3）には存在しない場合がある。
+      //    存在しない(undefined)ことは許容しつつ、値が存在する場合は型を厳格にチェックする。
+      //    これによりrenderPromptCardsのソート処理（(b.useCount||0)-(a.useCount||0) など）が
+      //    不正な型（文字列・配列・オブジェクト等）でNaN化して崩壊するのを防ぐ。
+      const valid = Array.isArray(prompts) && prompts.every(p => {
+        const ok = (
+          typeof p === 'object' &&
+          p !== null &&
+          typeof p.id === 'string' &&
+          typeof p.title === 'string' &&
+          typeof p.category === 'string' &&
+          typeof p.body === 'string' &&
+          typeof p.isFavorite === 'boolean' &&
+          (p.createdAt === undefined || typeof p.createdAt === 'number') &&
+          (p.useCount === undefined || typeof p.useCount === 'number') &&
+          (p.lastUsedAt === undefined || p.lastUsedAt === null || typeof p.lastUsedAt === 'number')
+        );
+        if (!ok) console.error('[validatePrompts] 不正なプロンプトデータを検出:', p);
+        return ok;
+      });
+      if (!valid) console.error('[validatePrompts] バリデーション失敗。インポートを中止します。');
+      return valid;
     }
 
     function validateCategories(categories) {
@@ -1207,7 +1300,10 @@
     }
 
     async function exportData() {
-      await flushSave();
+      // エクスポート内容はメモリから直接生成するため、IDBへの書込完了は待たない
+      // （awaitするとユーザー操作の有効期限が切れて共有シートが開けない端末があるため）
+      flushSave();
+
       const data = {
         app: APP_CONFIG.name,
         version: APP_CONFIG.version,
@@ -1217,11 +1313,29 @@
         categories
       };
       const json = JSON.stringify(data, null, 2);
+      const filename = `プロンプトの引き出し_${new Date().toISOString().split('T')[0]}_v${APP_CONFIG.version}.json`;
+
+      // ☁️ Web Share API: Androidの共有シートを開き、Drive等へ直接保存できる
+      if (navigator.canShare && window.File) {
+        try {
+          const file = new File([json], filename, { type: 'application/json' });
+          if (navigator.canShare({ files: [file] })) {
+            await navigator.share({ files: [file], title: filename });
+            showToast('✅ 共有しました');
+            return;
+          }
+        } catch (e) {
+          if (e && e.name === 'AbortError') return; // ユーザーが共有をキャンセル → 何もしない
+          console.warn('共有失敗。ダウンロードにフォールバック:', e);
+        }
+      }
+
+      // フォールバック: 従来のダウンロード
       const blob = new Blob([json], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `プロンプトの引き出し_${new Date().toISOString().split('T')[0]}_v${APP_CONFIG.version}.json`;
+      a.download = filename;
       a.click();
       URL.revokeObjectURL(url);
       showToast('✅ エクスポートしました');
@@ -1237,6 +1351,7 @@
       dirty = true;
       await flushSave(); // 空データ + meta（テーマ設定）を書き戻す
       renderUI();
+      closeAllSheets();
       showToast('✅ すべて削除しました');
     }
 
@@ -1260,7 +1375,7 @@
       let persisted = false;
       try {
         if (navigator.storage && navigator.storage.persisted) persisted = await navigator.storage.persisted();
-      } catch (e) {}
+      } catch (e) { console.warn('永続化状態の取得に失敗:', e); }
       const mode = protectedMode ? '⚠️ 保護モード（保存無効）' : (persisted ? '🔒 永続ストレージ有効' : '☁️ 永続化未承認（OSが削除する可能性あり）');
       el.textContent = `v${APP_CONFIG.version} / IndexedDB / ${mode} / ${allPrompts.length}件`;
     }
@@ -1282,10 +1397,24 @@
 
     const historyStack = [];
 
+    // ✅ スマホの「戻る」ジェスチャー連携:
+    // シートを開くたびに history.pushState し、戻る操作(popstate)でシートを閉じる。
+    // これにより戻るスワイプでアプリが終了せず、シートだけが閉じる。
     function pushHistory(state) {
       historyStack.push(state);
+      history.pushState({ depth: historyStack.length }, '');
       updateModalVisibility();
     }
+
+    window.addEventListener('popstate', (e) => {
+      const depth = (e.state && typeof e.state.depth === 'number') ? e.state.depth : 0;
+      historyStack.length = Math.max(0, Math.min(historyStack.length, depth));
+      if (historyStack.length > 0) {
+        updateModalVisibility(); // 1つ前のシートへ戻る（例: 新規カテゴリ→カテゴリ管理）
+      } else {
+        closeAllSheetsVisual();
+      }
+    });
 
     function updateModalVisibility() {
       const modalOverlay = document.getElementById('modalOverlay');
@@ -1323,29 +1452,28 @@
       closeSidebarOnMobile();
     }
 
-    function closeAllSheets() {
-      historyStack.length = 0;
+    // 見た目のみ閉じる（履歴には触れない。popstateから呼ばれる）
+    // ✅ 下書き保持: 誤タップでシートが閉じても newPrompt / newCategory の入力値は消さない。
+    //    クリアは各保存処理の成功時のみ行う。（編集シートは開くたびに保存値から再取得される仕様）
+    function closeAllSheetsVisual() {
       document.querySelectorAll('.sheet').forEach(sheet => sheet.classList.remove('open'));
       document.getElementById('modalOverlay').classList.remove('open');
-      
-      // ✅ 修正3: フォーム入力値をリセット
-      document.getElementById('newPromptTitle').value = '';
-      document.getElementById('newPromptCategory').value = '';
-      document.getElementById('newPromptBody').value = '';
-      
-      document.getElementById('editPromptTitle').value = '';
-      document.getElementById('editPromptCategory').value = '';
-      document.getElementById('editPromptBody').value = '';
-      
-      document.getElementById('newCategoryLabel').value = '';
-      document.getElementById('newCategoryCode').value = '';
-      document.getElementById('newCategoryColor').value = '#3b82f6';
-      
-      // ✅ 修正4: editingId をリセット
       editingId = null;
       fillTargetId = null;
       document.getElementById('fillFields').innerHTML = '';
       document.getElementById('fillPreview').textContent = '';
+    }
+
+    // UI（✕ボタン・オーバーレイ・保存完了）から閉じる: ブラウザの「戻る」と同じく1階層ずつ戻す。
+    // 🐞 修正3: 以前は history.go(-historyStack.length) で深い階層から一気に全閉じしていたため、
+    //    設定 ＞ カテゴリ管理 ＞ 新規カテゴリ のような深い階層で「作成」や「✕」を押すと
+    //    メイン画面まで強制的に戻ってしまっていた。history.back() で1階層ずつ戻すよう修正。
+    function closeAllSheets() {
+      if (historyStack.length > 0) {
+        history.back(); // popstate 経由で1階層だけ戻る（historyStackが0ならcloseAllSheetsVisualが呼ばれる）
+      } else {
+        closeAllSheetsVisual();
+      }
     }
 
     // 🐞 フリーズ根本修正:
