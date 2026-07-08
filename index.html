@@ -164,6 +164,21 @@
     .toast { position: fixed; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); left: 20px; right: 20px; background: #1e293b; color: white; padding: 12px 16px; border-radius: 8px; font-size: 14px; z-index: 60; opacity: 0; pointer-events: none; transition: opacity 0.2s; max-width: 320px; margin: 0 auto; left: 50%; transform: translateX(-50%); }
     .toast.show { opacity: 1; pointer-events: auto; }
 
+    /* カテゴリチップ（横スクロール） */
+    .chips { display: flex; gap: 8px; overflow-x: auto; padding: 10px 16px; border-bottom: 1px solid #e2e8f0; flex-shrink: 0; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+    .chips::-webkit-scrollbar { display: none; }
+    body.dark-mode .chips { border-bottom-color: #334155; }
+    .chip { flex-shrink: 0; padding: 9px 14px; border-radius: 999px; background: white; color: #334155; font-size: 13px; font-weight: 600; border: 1px solid #e2e8f0; min-height: 40px; display: flex; align-items: center; gap: 6px; cursor: pointer; touch-action: manipulation; }
+    .chip:active { opacity: 0.7; }
+    .chip.active { background: #3b82f6; color: white; border-color: #3b82f6; }
+    body.dark-mode .chip { background: #1e293b; color: #f1f5f9; border-color: #334155; }
+    body.dark-mode .chip.active { background: #3b82f6; border-color: #3b82f6; }
+    .chip-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .chip-count { font-size: 11px; opacity: 0.7; }
+
+    /* 折りたたみカードの展開インジケータ */
+    .prompt-toggle-hint { font-size: 11px; color: #94a3b8; }
+
     #sidebarToggle { display: none; }
 
     @media (max-width: 600px) {
@@ -181,7 +196,7 @@
         <button id="sidebarToggle">☰</button>
         <div class="header-icon">📋</div>
         <div class="header-text">
-          <div class="header-title">プロンプト引き出し <span class="app-version">v1.7.1</span></div>
+          <div class="header-title">プロンプト引き出し <span class="app-version">v1.8.0</span></div>
           <div class="header-subtitle" id="categoryCount">全0件</div>
         </div>
       </div>
@@ -215,6 +230,8 @@
             <option value="recentUsed">最近使った順</option>
           </select>
         </div>
+
+        <div class="chips" id="categoryChips"></div>
 
         <div class="content-body" id="contentBody"></div>
       </div>
@@ -337,7 +354,7 @@
   <div id="toast" class="toast"></div>
 
   <script>
-    const APP_CONFIG = { name: 'プロンプトの引き出し', version: '1.7.1', schemaVersion: 3 };
+    const APP_CONFIG = { name: 'プロンプトの引き出し', version: '1.8.0', schemaVersion: 3 };
 
     let allPrompts = [];
     let categories = [];
@@ -345,6 +362,7 @@
     let filteredPrompts = [];
     let currentFilter = 'all';
     let editingId = null;
+    const expandedIds = new Set(); // 展開中カードのID（再描画後も維持）
     let protectedMode = false; // 読込失敗時はデータ破壊を防ぐため書込禁止
 
     // ===== IndexedDB 層（起動時一括インメモリロード / 変更時デバウンス非同期永続化） =====
@@ -516,11 +534,49 @@
     }
 
     function renderUI() {
+      renderCategoryChips();
       renderFilterTabs();
       renderPromptCards();
       updateCategoryCount();
       // ✅ 修正8: カテゴリ変更時にフォーム select を更新
       updateCategoryOptions();
+    }
+
+    // カテゴリチップ: スマホでもワンタップで分類・絞り込み・新規作成
+    function renderCategoryChips() {
+      const container = document.getElementById('categoryChips');
+      container.innerHTML = '';
+
+      const makeChip = (label, count, active, onclick, dotColor) => {
+        const chip = document.createElement('div');
+        chip.className = `chip ${active ? 'active' : ''}`;
+        if (dotColor) {
+          const dot = document.createElement('span');
+          dot.className = 'chip-dot';
+          dot.style.background = dotColor;
+          chip.appendChild(dot);
+        }
+        const text = document.createElement('span');
+        text.textContent = label;
+        chip.appendChild(text);
+        if (count !== null) {
+          const c = document.createElement('span');
+          c.className = 'chip-count';
+          c.textContent = count;
+          chip.appendChild(c);
+        }
+        chip.onclick = onclick;
+        container.appendChild(chip);
+        return chip;
+      };
+
+      makeChip('すべて', allPrompts.length, currentFilter === 'all', () => { currentFilter = 'all'; renderUI(); });
+      makeChip('⭐', allPrompts.filter(p => p.isFavorite).length, currentFilter === 'favorites', () => { currentFilter = 'favorites'; renderUI(); });
+      categories.forEach(cat => {
+        const count = allPrompts.filter(p => p.category === cat.code).length;
+        makeChip(cat.label, count, currentFilter === cat.code, () => { currentFilter = cat.code; renderUI(); }, cat.color);
+      });
+      makeChip('＋ カテゴリ', null, false, () => pushHistory('newCategory'));
     }
 
     function renderFilterTabs() {
@@ -620,40 +676,40 @@
               <button class="btn-sm btn-edit" data-id="${prompt.id}">✏️</button>
             </div>
           </div>
-          <div class="prompt-summary"></div>
+          <div class="prompt-toggle-hint"></div>
           <div class="prompt-body"></div>
         `;
-        
-        // ✅ 修正5: textContent で安全に内容を設定
-        card.querySelector('.prompt-title').textContent = prompt.title;
-        card.querySelector('.prompt-summary').textContent = 
-          prompt.body.substring(0, 100) + (prompt.body.length > 100 ? '...' : '');
 
-        // メタ情報バッジ（使用回数・変数あり）
-        const metaBits = [];
+        // ✅ タイトルのみ表示、本文はタップで展開（一覧の見通し改善）
+        card.querySelector('.prompt-title').textContent = prompt.title;
+        card.querySelector('.prompt-body').textContent = prompt.body;
+
+        // メタ情報行（展開ヒント・使用回数・変数あり）
+        const metaBits = ['▾ タップで本文'];
         if ((prompt.useCount || 0) > 0) metaBits.push(`📋 ${prompt.useCount}回`);
         if (extractPlaceholders(prompt.body).length > 0) metaBits.push('🧩 変数あり');
-        if (metaBits.length > 0) {
-          const metaDiv = document.createElement('div');
-          metaDiv.style.cssText = 'font-size: 11px; color: #94a3b8;';
-          metaDiv.textContent = metaBits.join(' ・ ');
-          card.appendChild(metaDiv);
-        }
-        card.querySelector('.prompt-body').textContent = prompt.body;  // ✅ pre-wrap で表示される
-        
-        // ✅ 修正6: onclick 属性ではなく addEventListener を使用
-        const favBtn = card.querySelector('.btn-fav');
-        favBtn.onclick = (e) => { e.stopPropagation(); toggleFavorite(prompt.id); };
+        const hint = card.querySelector('.prompt-toggle-hint');
+        hint.textContent = metaBits.join(' ・ ');
 
-        const copyBtn = card.querySelector('.btn-copy');
-        copyBtn.onclick = (e) => { e.stopPropagation(); copyToClipboard(prompt.id); };
-
-        const editBtn = card.querySelector('.btn-edit');
-        editBtn.onclick = (e) => { e.stopPropagation(); openEditPrompt(prompt.id); };
-
-        const summary = card.querySelector('.prompt-summary');
         const body = card.querySelector('.prompt-body');
-        summary.onclick = () => { body.classList.toggle('expanded'); };
+
+        // 展開状態を維持（再描画後も復元）
+        if (expandedIds.has(prompt.id)) {
+          body.classList.add('expanded');
+          hint.textContent = hint.textContent.replace('▾ タップで本文', '▴ タップで閉じる');
+        }
+
+        card.querySelector('.btn-fav').onclick = (e) => { e.stopPropagation(); toggleFavorite(prompt.id); };
+        card.querySelector('.btn-copy').onclick = (e) => { e.stopPropagation(); copyToClipboard(prompt.id); };
+        card.querySelector('.btn-edit').onclick = (e) => { e.stopPropagation(); openEditPrompt(prompt.id); };
+
+        // カード全体タップで開閉（展開中の本文タップは除外＝コピー用の長押し選択を妨げない）
+        card.onclick = (e) => {
+          if (e.target.closest('.prompt-body')) return;
+          if (expandedIds.has(prompt.id)) expandedIds.delete(prompt.id);
+          else expandedIds.add(prompt.id);
+          renderPromptCards();
+        };
 
         container.appendChild(card);
       });
