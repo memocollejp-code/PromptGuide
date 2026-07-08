@@ -123,6 +123,7 @@
     /* ✅ 改善1: クラス名を "expanded" に変更し、表示ロジックを正規化 */
     .prompt-body { display: none; background: #f8fafc; border-radius: 6px; padding: 12px; font-family: "Courier New", monospace; font-size: 12px; color: #334155; white-space: pre-wrap; word-break: break-word; max-height: none; overflow-y: auto; }
     body.dark-mode .prompt-body { background: #0f172a; color: #cbd5e1; }
+    body.dark-mode #fillPreview { background: #0f172a; color: #cbd5e1; }
 
     .prompt-body.expanded { display: block; }
 
@@ -180,7 +181,7 @@
         <button id="sidebarToggle">☰</button>
         <div class="header-icon">📋</div>
         <div class="header-text">
-          <div class="header-title">プロンプト引き出し <span class="app-version">v1.6.0</span></div>
+          <div class="header-title">プロンプト引き出し <span class="app-version">v1.7.1</span></div>
           <div class="header-subtitle" id="categoryCount">全0件</div>
         </div>
       </div>
@@ -206,8 +207,13 @@
       </div>
 
       <div class="content">
-        <div class="content-header">
+        <div class="content-header" style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
           <div class="content-title" id="contentTitle">すべて</div>
+          <select id="sortSelect" class="form-input" style="width: auto; appearance: auto; padding: 8px 10px; font-size: 14px;">
+            <option value="newest">新しい順</option>
+            <option value="mostUsed">よく使う順</option>
+            <option value="recentUsed">最近使った順</option>
+          </select>
         </div>
 
         <div class="content-body" id="contentBody"></div>
@@ -315,10 +321,23 @@
     </div>
   </div>
 
+  <div id="fillSheet" class="sheet">
+    <div class="sheet-header">
+      <div class="sheet-title">🧩 変数を入力</div>
+      <button class="btn-close">✕</button>
+    </div>
+    <div class="sheet-body">
+      <div id="fillFields"></div>
+      <div id="fillPreview" style="background: #f8fafc; border-radius: 6px; padding: 12px; font-family: monospace; font-size: 12px; white-space: pre-wrap; word-break: break-word; max-height: 30vh; overflow-y: auto; color: #334155;"></div>
+      <button class="btn-primary" id="fillCopyBtn" style="width: 100%;">📋 埋めてコピー</button>
+      <button class="btn-secondary" id="fillRawCopyBtn" style="width: 100%;">そのままコピー（変数のまま）</button>
+    </div>
+  </div>
+
   <div id="toast" class="toast"></div>
 
   <script>
-    const APP_CONFIG = { name: 'プロンプトの引き出し', version: '1.6.0', schemaVersion: 2 };
+    const APP_CONFIG = { name: 'プロンプトの引き出し', version: '1.7.1', schemaVersion: 3 };
 
     let allPrompts = [];
     let categories = [];
@@ -378,7 +397,15 @@
     // ===== マイグレーション =====
     const migrations = {
       // v1(localStorage時代) → v2(IndexedDB): データ形状は同一なのでそのまま採用
-      2: (data) => data
+      2: (data) => data,
+      // v3: 使用回数トラッキング用フィールドを追加
+      3: (data) => {
+        (data.prompts || []).forEach(p => {
+          if (typeof p.useCount !== 'number') p.useCount = 0;
+          if (p.lastUsedAt === undefined) p.lastUsedAt = null;
+        });
+        return data;
+      }
     };
 
     function runMigrations(data, fromVersion) {
@@ -527,6 +554,7 @@
 
     function renderPromptCards() {
       const container = document.getElementById('contentBody');
+      const savedScroll = container.scrollTop; // 🐞 修正: 再描画でスクロールが先頭に戻る問題
       container.innerHTML = '';
 
       // ✅ 修正1: 検索入力値を取得
@@ -552,6 +580,14 @@
           p.body.toLowerCase().includes(searchLower)
         );
       }
+
+      // ソート適用
+      const mode = meta.sortMode || 'newest';
+      filteredPrompts = filteredPrompts.slice().sort((a, b) => {
+        if (mode === 'mostUsed') return (b.useCount || 0) - (a.useCount || 0);
+        if (mode === 'recentUsed') return (b.lastUsedAt || 0) - (a.lastUsedAt || 0);
+        return Number(b.id) - Number(a.id); // newest: id は Date.now() 文字列
+      });
 
       if (filteredPrompts.length === 0) {
         container.innerHTML = '<div class="empty-state"><div class="empty-icon">📭</div><div class="empty-title">プロンプトがありません</div><div class="empty-text">新しいプロンプトを追加してください</div></div>';
@@ -592,6 +628,17 @@
         card.querySelector('.prompt-title').textContent = prompt.title;
         card.querySelector('.prompt-summary').textContent = 
           prompt.body.substring(0, 100) + (prompt.body.length > 100 ? '...' : '');
+
+        // メタ情報バッジ（使用回数・変数あり）
+        const metaBits = [];
+        if ((prompt.useCount || 0) > 0) metaBits.push(`📋 ${prompt.useCount}回`);
+        if (extractPlaceholders(prompt.body).length > 0) metaBits.push('🧩 変数あり');
+        if (metaBits.length > 0) {
+          const metaDiv = document.createElement('div');
+          metaDiv.style.cssText = 'font-size: 11px; color: #94a3b8;';
+          metaDiv.textContent = metaBits.join(' ・ ');
+          card.appendChild(metaDiv);
+        }
         card.querySelector('.prompt-body').textContent = prompt.body;  // ✅ pre-wrap で表示される
         
         // ✅ 修正6: onclick 属性ではなく addEventListener を使用
@@ -610,6 +657,8 @@
 
         container.appendChild(card);
       });
+
+      container.scrollTop = savedScroll; // スクロール位置を復元
     }
 
     function updateCategoryCount() {
@@ -678,15 +727,90 @@
       }
     }
 
+    let fillTargetId = null;
+    const PLACEHOLDER_RE = /\{\{([^{}\n]{1,40})\}\}/g;
+
+    function extractPlaceholders(body) {
+      const names = [];
+      const seen = new Set();
+      let m;
+      PLACEHOLDER_RE.lastIndex = 0;
+      while ((m = PLACEHOLDER_RE.exec(body)) !== null) {
+        const name = m[1].trim();
+        if (name && !seen.has(name)) { seen.add(name); names.push(name); }
+      }
+      return names;
+    }
+
+    function recordUsage(prompt) {
+      prompt.useCount = (prompt.useCount || 0) + 1;
+      prompt.lastUsedAt = Date.now();
+      scheduleSave();
+    }
+
+    function doCopy(text, prompt) {
+      navigator.clipboard.writeText(text).then(() => {
+        recordUsage(prompt);
+        renderUI();
+        showToast('✅ コピーしました');
+      }).catch(() => {
+        showToast('⚠️ コピーに失敗しました');
+      });
+    }
+
     function copyToClipboard(id) {
       const prompt = allPrompts.find(p => p.id === id);
-      if (prompt) {
-        navigator.clipboard.writeText(prompt.body).then(() => {
-          showToast('✅ コピーしました');
-        }).catch(() => {
-          showToast('⚠️ コピーに失敗しました');
-        });
+      if (!prompt) return;
+      const vars = extractPlaceholders(prompt.body);
+      if (vars.length === 0) {
+        doCopy(prompt.body, prompt);
+        return;
       }
+      openFillSheet(prompt, vars);
+    }
+
+    function buildFilledText(prompt) {
+      const inputs = document.querySelectorAll('#fillFields input[data-var]');
+      const values = {};
+      inputs.forEach(inp => { values[inp.dataset.var] = inp.value; });
+      PLACEHOLDER_RE.lastIndex = 0;
+      return prompt.body.replace(PLACEHOLDER_RE, (match, name) => {
+        const key = name.trim();
+        const v = values[key];
+        return (v !== undefined && v !== '') ? v : match; // 未入力は変数のまま残す
+      });
+    }
+
+    function openFillSheet(prompt, vars) {
+      fillTargetId = prompt.id;
+      const fields = document.getElementById('fillFields');
+      fields.innerHTML = '';
+      fields.style.cssText = 'display: flex; flex-direction: column; gap: 12px;';
+
+      vars.forEach(name => {
+        const wrap = document.createElement('div');
+        const label = document.createElement('label');
+        label.style.cssText = 'font-size: 12px; font-weight: 600; color: #64748b; display: block; margin-bottom: 4px;';
+        label.textContent = name;
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.className = 'form-input';
+        input.placeholder = `{{${name}}} の値`;
+        input.dataset.var = name;
+        input.addEventListener('input', updateFillPreview);
+        wrap.appendChild(label);
+        wrap.appendChild(input);
+        fields.appendChild(wrap);
+      });
+
+      updateFillPreview();
+      pushHistory('fill');
+    }
+
+    function updateFillPreview() {
+      const prompt = allPrompts.find(p => p.id === fillTargetId);
+      if (!prompt) return;
+      document.getElementById('fillPreview').textContent = buildFilledText(prompt);
     }
 
     function openEditPrompt(id) {
@@ -778,7 +902,9 @@
           title,
           category,
           body,
-          isFavorite: false
+          isFavorite: false,
+          useCount: 0,
+          lastUsedAt: null
         });
 
         await saveData();
@@ -946,6 +1072,38 @@
       document.getElementById('modalOverlay').onclick = closeAllSheets;
       document.getElementById('sidebarOverlay').onclick = closeSidebar;
 
+      document.getElementById('fillCopyBtn').onclick = () => {
+        const prompt = allPrompts.find(p => p.id === fillTargetId);
+        if (!prompt) return;
+        const text = buildFilledText(prompt);
+        navigator.clipboard.writeText(text).then(() => {
+          recordUsage(prompt);
+          closeAllSheets();
+          renderUI();
+          showToast('✅ 変数を埋めてコピーしました');
+        }).catch(() => showToast('⚠️ コピーに失敗しました'));
+      };
+
+      document.getElementById('fillRawCopyBtn').onclick = () => {
+        const prompt = allPrompts.find(p => p.id === fillTargetId);
+        if (!prompt) return;
+        navigator.clipboard.writeText(prompt.body).then(() => {
+          recordUsage(prompt);
+          closeAllSheets();
+          renderUI();
+          showToast('✅ コピーしました');
+        }).catch(() => showToast('⚠️ コピーに失敗しました'));
+      };
+
+      // ソート切替（設定は保存して次回起動時も維持）
+      const sortSelect = document.getElementById('sortSelect');
+      sortSelect.value = meta.sortMode || 'newest';
+      sortSelect.addEventListener('change', () => {
+        meta.sortMode = sortSelect.value;
+        scheduleSave();
+        renderPromptCards();
+      });
+
       // キーボード処理
       document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') { closeAllSheets(); closeSidebar(); }
@@ -1097,6 +1255,9 @@
       } else if (state === 'newCategory') {
         document.getElementById('newCategorySheet').classList.add('open');
         modalOverlay.classList.add('open');
+      } else if (state === 'fill') {
+        document.getElementById('fillSheet').classList.add('open');
+        modalOverlay.classList.add('open');
       } else if (state === 'menu') {
         updateStorageStatus();
         document.getElementById('menuSheet').classList.add('open');
@@ -1126,6 +1287,9 @@
       
       // ✅ 修正4: editingId をリセット
       editingId = null;
+      fillTargetId = null;
+      document.getElementById('fillFields').innerHTML = '';
+      document.getElementById('fillPreview').textContent = '';
     }
 
     // 🐞 フリーズ根本修正:

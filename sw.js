@@ -1,6 +1,6 @@
-// prompt_drawer sw.js v1.4.0
+// prompt_drawer sw.js v1.7.1
 const CACHE_PREFIX = "prompt-drawer";
-let appVersion = "20260704v1.4.0";
+let appVersion = "20260708v1.7.1";
 
 self.addEventListener("message", (event) => {
   if (event.data && event.data.type === "SET_VERSION") {
