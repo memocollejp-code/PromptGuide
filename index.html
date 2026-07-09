@@ -197,7 +197,7 @@
         <button id="sidebarToggle">☰</button>
         <div class="header-icon">📋</div>
         <div class="header-text">
-          <div class="header-title">プロンプト引き出し <span class="app-version">v1.13.0</span></div>
+          <div class="header-title">プロンプト引き出し <span class="app-version">v1.10.0</span></div>
           <div class="header-subtitle" id="categoryCount">全0件</div>
         </div>
       </div>
@@ -355,7 +355,7 @@
   <div id="toast" class="toast"></div>
 
   <script>
-    const APP_CONFIG = { name: 'プロンプトの引き出し', version: '1.13.0', schemaVersion: 4 };
+    const APP_CONFIG = { name: 'プロンプトの引き出し', version: '1.10.0', schemaVersion: 4 };
 
     // 衝突しないID生成（crypto.randomUUID非対応環境へのフォールバック付き）
     function genId() {
@@ -484,22 +484,6 @@
     async function saveData() { scheduleSave(); }
     async function saveCategories() { scheduleSave(); }
 
-    // 🐞 修正2: 「保存」「削除」「作成」など確定ボタン押下時専用の即時保存。
-    // 通常の入力中はscheduleSave()の400msデバウンスを維持し高頻度書き込みによる
-    // 発熱・パフォーマンス低下を防ぐが、確定ボタンの直後だけはタイマーを待たず
-    // IndexedDBへの物理的な書き込み完了を待ってから画面を閉じる。
-    // これによりユーザーが保存直後にホーム画面に戻ったりアプリを強制終了しても、
-    // 書き込みが完了する前にプロセスが凍結されてデータが消えることを防ぐ。
-    async function flushSaveNow() {
-      dirty = true;
-      if (saveTimer) { clearTimeout(saveTimer); saveTimer = null; }
-      try {
-        await flushSave();
-      } catch (e) {
-        console.error('確定保存(flushSaveNow)に失敗:', e);
-      }
-    }
-
     async function loadAll() {
       try {
         const [p, c, m] = await Promise.all([idbGet('prompts'), idbGet('categories'), idbGet('meta')]);
@@ -561,7 +545,7 @@
         navigator.serviceWorker.register('./sw.js').then(reg => {
           const send = () => {
             const sw = reg.active || navigator.serviceWorker.controller;
-            if (sw) sw.postMessage({ type: 'SET_VERSION', version: '20260709v' + APP_CONFIG.version });
+            if (sw) sw.postMessage({ type: 'SET_VERSION', version: '20260708v' + APP_CONFIG.version });
           };
           if (reg.active) send(); else navigator.serviceWorker.ready.then(send);
         }).catch(e => console.warn('SW登録失敗:', e));
@@ -1009,7 +993,7 @@
           lastUsedAt: null
         });
 
-        await flushSaveNow();
+        await saveData();
         renderUI();
         // ✅ 保存成功時のみ下書きをクリア（誤タップで閉じても下書きは保持される）
         document.getElementById('newPromptTitle').value = '';
@@ -1040,7 +1024,7 @@
           prompt.title = title;
           prompt.category = category;
           prompt.body = body;
-          await flushSaveNow();
+          await saveData();
           renderUI();
           closeAllSheets();
           showToast('✅ プロンプトを更新しました');
@@ -1056,7 +1040,7 @@
         
         if (confirm('本当に削除しますか？')) {
           allPrompts = allPrompts.filter(p => p.id !== editingId);
-          await flushSaveNow();
+          await saveData();
           renderUI();
           closeAllSheets();
           showToast('✅ プロンプトを削除しました');
@@ -1085,7 +1069,7 @@
           color
         });
 
-        await flushSaveNow();
+        await saveCategories();
         renderUI();
         updateCategoryOptions();
         // 保存成功時のみ入力をクリア
@@ -1096,10 +1080,10 @@
         showToast('✅ カテゴリを作成しました');
       };
 
-      // ✅ 修正2: ファイル選択をキャンセルしても設定シートが閉じないよう、ここでは閉じない。
-      //    シートを閉じるのはインポートが正常に完了した時のみ（change イベント側で実施）。
+      // ✅ 改善3: インポート検証ロジックを明確化
       document.getElementById('importMenuBtn').onclick = () => {
         document.getElementById('importFile').click();
+        closeAllSheets();
       };
 
       document.getElementById('importFile').addEventListener('change', async (e) => {
@@ -1140,40 +1124,13 @@
             const fromVer = typeof data.schemaVersion === 'number' ? data.schemaVersion : 1;
             let imported = { prompts: data.prompts || [], categories: data.categories || [] };
             if (fromVer < APP_CONFIG.schemaVersion) imported = runMigrations(imported, fromVer);
-
-            // ✅ 修正1: マージ（追加）か上書きかをユーザーに選択させる
-            // OK  = 現在のデータに追加（マージ）
-            // キャンセル = 既存データを消して置き換え（上書き）
-            const mergeMode = confirm(
-              'インポート方法を選んでください。\n\n[OK] 現在のデータに追加する（マージ）\n[キャンセル] 既存のデータを消してファイルの内容で上書きする'
-            );
-
-            if (mergeMode) {
-              // 既存にないカテゴリコードだけ追加
-              const existingCatCodes = new Set(categories.map(c => c.code));
-              const newCats = imported.categories.filter(c => !existingCatCodes.has(c.code));
-              categories = categories.concat(newCats);
-
-              // IDが既存と衝突するプロンプトは新規IDを振り直して追加（データ消失防止）
-              const existingIds = new Set(allPrompts.map(p => p.id));
-              const newPrompts = imported.prompts.map(p => {
-                if (existingIds.has(p.id)) {
-                  return Object.assign({}, p, { id: genId() });
-                }
-                return p;
-              });
-              allPrompts = allPrompts.concat(newPrompts);
-            } else {
-              allPrompts = imported.prompts;
-              categories = imported.categories;
-            }
-
-            await flushSaveNow();
+            allPrompts = imported.prompts;
+            categories = imported.categories;
+            scheduleSave();
+            await flushSave();
             renderUI();
             updateCategoryOptions();
-            showToast(mergeMode ? "✅ データをマージしました" : "✅ データを上書きしました");
-            // ✅ インポートが正常に完了した時だけ設定シートを閉じる
-            closeAllSheets();
+            showToast("✅ インポートしました");
           } catch (e) {
             console.error("インポートエラー:", e);
             showToast("⚠️ インポートに失敗しました");
@@ -1261,29 +1218,15 @@
     }
 
     function validatePrompts(prompts) {
-      // 🐞 修正3: createdAt / useCount / lastUsedAt はスキーマv3・v4で追加されたフィールドのため、
-      //    古いバックアップ（schemaVersion 1〜3）には存在しない場合がある。
-      //    存在しない(undefined)ことは許容しつつ、値が存在する場合は型を厳格にチェックする。
-      //    これによりrenderPromptCardsのソート処理（(b.useCount||0)-(a.useCount||0) など）が
-      //    不正な型（文字列・配列・オブジェクト等）でNaN化して崩壊するのを防ぐ。
-      const valid = Array.isArray(prompts) && prompts.every(p => {
-        const ok = (
-          typeof p === 'object' &&
-          p !== null &&
-          typeof p.id === 'string' &&
-          typeof p.title === 'string' &&
-          typeof p.category === 'string' &&
-          typeof p.body === 'string' &&
-          typeof p.isFavorite === 'boolean' &&
-          (p.createdAt === undefined || typeof p.createdAt === 'number') &&
-          (p.useCount === undefined || typeof p.useCount === 'number') &&
-          (p.lastUsedAt === undefined || p.lastUsedAt === null || typeof p.lastUsedAt === 'number')
-        );
-        if (!ok) console.error('[validatePrompts] 不正なプロンプトデータを検出:', p);
-        return ok;
-      });
-      if (!valid) console.error('[validatePrompts] バリデーション失敗。インポートを中止します。');
-      return valid;
+      return Array.isArray(prompts) && prompts.every(p =>
+        typeof p === 'object' &&
+        p !== null &&
+        typeof p.id === 'string' &&
+        typeof p.title === 'string' &&
+        typeof p.category === 'string' &&
+        typeof p.body === 'string' &&
+        typeof p.isFavorite === 'boolean'
+      );
     }
 
     function validateCategories(categories) {
@@ -1375,7 +1318,7 @@
       let persisted = false;
       try {
         if (navigator.storage && navigator.storage.persisted) persisted = await navigator.storage.persisted();
-      } catch (e) { console.warn('永続化状態の取得に失敗:', e); }
+      } catch (e) {}
       const mode = protectedMode ? '⚠️ 保護モード（保存無効）' : (persisted ? '🔒 永続ストレージ有効' : '☁️ 永続化未承認（OSが削除する可能性あり）');
       el.textContent = `v${APP_CONFIG.version} / IndexedDB / ${mode} / ${allPrompts.length}件`;
     }
@@ -1464,13 +1407,10 @@
       document.getElementById('fillPreview').textContent = '';
     }
 
-    // UI（✕ボタン・オーバーレイ・保存完了）から閉じる: ブラウザの「戻る」と同じく1階層ずつ戻す。
-    // 🐞 修正3: 以前は history.go(-historyStack.length) で深い階層から一気に全閉じしていたため、
-    //    設定 ＞ カテゴリ管理 ＞ 新規カテゴリ のような深い階層で「作成」や「✕」を押すと
-    //    メイン画面まで強制的に戻ってしまっていた。history.back() で1階層ずつ戻すよう修正。
+    // UI（✕ボタン・オーバーレイ・保存完了）から閉じる: ブラウザ履歴も巻き戻して整合を保つ
     function closeAllSheets() {
       if (historyStack.length > 0) {
-        history.back(); // popstate 経由で1階層だけ戻る（historyStackが0ならcloseAllSheetsVisualが呼ばれる）
+        history.go(-historyStack.length); // popstate 経由で closeAllSheetsVisual が実行される
       } else {
         closeAllSheetsVisual();
       }
